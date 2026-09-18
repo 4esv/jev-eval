@@ -15,3 +15,6 @@ dev = ["pytest>=8"]
 
 [tool.setuptools]
 packages = ["evaljev"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
