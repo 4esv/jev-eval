@@ -1,0 +1,17 @@
+[project]
+name = "evaljev"
+version = "0.1.0"
+description = "Independent eval of TypeSafe Jev vs GPT-5.6 Terra"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "httpx>=0.27",
+    "datasets>=3.0",
+    "numpy>=2.0",
+    "matplotlib>=3.9",
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.setuptools]
+packages = ["evaljev"]
