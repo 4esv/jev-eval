@@ -130,7 +130,7 @@ def terra_messages(task: str, names: list[str], text: str) -> list[dict]:
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
-async def terra(client: httpx.AsyncClient, task: str, names: list[str], item: dict) -> dict:
+async def terra(client: httpx.AsyncClient, task: str, names: list[str], item: dict, effort: str | None = None) -> dict:
     shown = [display(n) for n in names]
     schema = {
         "type": "object",
@@ -147,6 +147,9 @@ async def terra(client: httpx.AsyncClient, task: str, names: list[str], item: di
         "response_format": {"type": "json_schema", "json_schema": {"name": "decision", "strict": True, "schema": schema}},
         "usage": {"include": True},
     }
+    # NOTE: OpenRouter's default for Terra spends 0 reasoning tokens; effort opts into reasoning.
+    if effort:
+        body["reasoning"] = {"effort": effort}
     headers = {"Authorization": f"Bearer {_key('OPENROUTER_API_KEY')}"}
     data, latency, attempts, rid = await _post(client, OR_URL, headers, body)
     content = data["choices"][0]["message"]["content"]
@@ -178,4 +181,8 @@ async def terra(client: httpx.AsyncClient, task: str, names: list[str], item: di
     }
 
 
-RUNNERS = {"jev": jev, "terra": terra}
+async def terra_reason(client: httpx.AsyncClient, task: str, names: list[str], item: dict) -> dict:
+    return await terra(client, task, names, item, effort="medium")
+
+
+RUNNERS = {"jev": jev, "terra": terra, "terra-reason": terra_reason}
