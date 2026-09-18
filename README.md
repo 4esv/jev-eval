@@ -1,62 +1,52 @@
 # jev-eval
 
-[Jev](https://typesafe.ai) is a paid API. You send it text plus a fixed list of allowed
-answers; it returns one answer and a probability for each option. No free text. It answers in
-about 200 ms and charges $0.042 per million input tokens. TypeSafe says it matches frontier
-LLMs on this kind of decision while being "193x faster, 444x cheaper", and that its
-probabilities are honest enough to auto-act on.
+[Jev](https://typesafe.ai) is a paid classification API from TypeSafe. You send it some text and a list of allowed answers. It returns one answer and a probability for each option. It cannot return free text. It answers in about 200 ms and charges $0.042 per million input tokens.
 
-This repo checks that against OpenAI's GPT-5.6 Terra on three public datasets with known
-correct answers. TypeSafe's own numbers measure agreement with other LLMs on tests its team
-wrote; these measure accuracy against labels.
+TypeSafe claims Jev is as accurate as frontier LLMs on this kind of decision, 193x faster, 444x cheaper, and honest enough about its confidence that software can act on it without a human.
 
-Run on 2026-09-17: `jev-1.13.0` and `openai/gpt-5.6-terra` (via OpenRouter). 300 items per
-task, 2,700 scored calls, plus 900 repeat calls to Jev.
+This repo tests those claims against OpenAI's GPT-5.6 Terra on three public datasets with known correct answers. TypeSafe's own evaluation measures how often Jev agrees with other LLMs on tests its team wrote. This one measures accuracy against labels.
+
+The run was on 2026-09-17 with `jev-1.13.0` and `openai/gpt-5.6-terra` through OpenRouter. Each task has 300 items. That is 2,700 scored calls, plus 900 repeat calls to Jev to check whether it gives the same answer twice.
 
 ## Results
 
 | | intent (77 options) | sentiment (5 levels) | positive/negative |
 |---|---|---|---|
 | **Accuracy** Jev / Terra | 0.78 / **0.85** | 0.57 / 0.59 | 0.97 / 0.97 |
-| Gap larger than noise? | borderline | no | no |
+| Is the gap larger than noise? | borderline | no | no |
 | **Calibration error** (lower is better) Jev / Terra | 0.11 / **0.08** | **0.20** / 0.30 | 0.04 / **0.02** |
 | **Median latency** Jev / Terra | 0.20 s / 1.04 s | 0.19 s / 1.06 s | 0.20 s / 1.04 s |
 | **Cost per 1k calls** Jev / Terra | $0.04 / $2.02 | $0.01 / $0.64 | $0.02 / $0.85 |
 
-Calibration error: if a model says 0.9, is it right 90% of the time? 0 means yes exactly.
-Full tables, per-threshold coverage and a reasoning-mode Terra run: [`results/summary.md`](results/summary.md).
+Calibration error measures whether a model that says 0.9 is right 90% of the time. A score of 0 means the confidence numbers are exactly honest.
+
+The full tables and a run of Terra in reasoning mode are in [`results/summary.md`](results/summary.md).
 
 ## Findings
 
-- **5x faster and 41–50x cheaper per call.** Real, but not 193x and 444x. Jev also counts
-  about twice the input tokens for the same text (340 vs 162 on identical sentences), which
-  eats part of the per-token price gap.
-- **Accuracy: tied on the easy tasks, 6.7 points behind on 77-way routing.** That gap is at
-  the edge of what 300 items can resolve.
-- **Probabilities are not reliably calibrated.** Better than Terra on 5-level sentiment,
-  worse on the other two. On intent, answers Jev gives at 0.98 confidence are right 90% of
-  the time.
-- **Its confidence is no better than an LLM's at flagging its own mistakes.** Used as an
-  escalate-to-human signal, Jev's probability separates right from wrong answers about as
-  well as Terra's self-reported number (AUROC 0.83 / 0.61 / 0.94 vs 0.81 / 0.64 / 0.96).
-- **Not deterministic.** The same input got a different answer 1.7% of the time on intent and
-  3.3% on sentiment. 0% on positive/negative.
-- **"Zero hallucinations" means "always returns a valid option".** True for all 1,800 Jev calls.
-  Also true for all 1,800 Terra calls, because a strict JSON schema does the same job.
-- **Reasoning mode didn't change the picture.** TypeSafe's 8.6 s Terra figure used reasoning.
-  On these short inputs, Terra with reasoning spent 4–17 reasoning tokens, answered in about
-  1 s, and was no more accurate.
+Jev was about 5x faster than Terra and 41x to 50x cheaper per call. The advertised numbers are 193x and 444x. One reason the cost gap is smaller than the price list suggests is that Jev counts about twice as many input tokens for the same text. On identical sentences it counted 340 tokens and Terra counted 162.
 
-## If you're deciding whether to use it
+Accuracy was tied on the two easy tasks. On the 77-way routing task Jev was 6.7 points behind. With 300 items that gap is at the edge of what the test can resolve.
 
-- Good fit: high-volume yes/no or few-way classification where a 1 s LLM call is too slow or
-  too expensive. Here: 0.97 accuracy, 0.2 s, $0.02 per 1k calls.
-- Threshold on confidence, but measure the threshold on your own labelled data first. The
-  probabilities were not reliably calibrated here, and an LLM's stated confidence worked
-  about as well.
-- Don't assume repeatability. Same input, different answer, a few percent of the time.
-- Routing across dozens of options lost several points to the LLM. Test that case on your
-  data. Per-option descriptions were not tried and might close the gap.
+Jev's probabilities were not reliably calibrated. They were better than Terra's on the 5-level sentiment task and worse on the other two. On the routing task, answers given with 0.98 confidence were right 90% of the time.
+
+Jev's confidence was no better than Terra's at flagging its own mistakes. Both models separate right answers from wrong ones about equally well, so neither gives a better signal for deciding when to escalate to a human. The scores are in the summary file.
+
+Jev is not deterministic. The same input produced a different answer 1.7% of the time on routing and 3.3% of the time on sentiment. It was 0% on positive/negative.
+
+"Zero hallucinations" means the answer is always one of the allowed options. That was true for all 1,800 Jev calls. It was also true for all 1,800 Terra calls, because a strict JSON schema enforces the same thing.
+
+Reasoning mode did not change the picture. TypeSafe's 8.6 second Terra figure used reasoning. On these short inputs Terra with reasoning used 4 to 17 reasoning tokens, answered in about 1 second, and was no more accurate.
+
+## If you are deciding whether to use it
+
+Jev fits high-volume yes/no or few-way classification where an LLM call is too slow or too expensive. On the positive/negative task it scored 0.97 accuracy at 0.2 seconds and $0.02 per 1k calls.
+
+Pick your confidence threshold from your own labelled data. The probabilities were not reliably calibrated here, and an LLM's self-reported confidence worked about as well.
+
+Do not assume the same input gives the same answer. It differed a few percent of the time.
+
+Routing across dozens of options lost several points to the LLM. Test that case on your own data. Adding a description to each option was not tried and might close the gap.
 
 ![reliability](results/reliability.png)
 
@@ -66,26 +56,33 @@ Full tables, per-threshold coverage and a reasoning-mode Terra run: [`results/su
 
 | task | data | Jev question type | Terra output |
 |---|---|---|---|
-| `intent` | Banking77 test (`mteb/banking77`), 300 items, 3–4 per class | `choice`, 77 options | JSON `{label, confidence}` |
-| `sentiment5` | SST-5 test (`SetFit/sst5`), 60 per level | `score`, 5 ordered levels | JSON `{label, confidence}` |
-| `polarity` | IMDB test, reviews ≤300 words, 150 per class | `noul` (yes/no) | JSON `{label, confidence}` |
+| `intent` | Banking77 test (`mteb/banking77`), 300 items, 3 or 4 per class | `choice` with 77 options | JSON `{label, confidence}` |
+| `sentiment5` | SST-5 test (`SetFit/sst5`), 60 per level | `score` with 5 ordered levels | JSON `{label, confidence}` |
+| `polarity` | IMDB test, reviews of 300 words or fewer, 150 per class | `noul` (yes/no) | JSON `{label, confidence}` |
 
-- Samples are seeded and balanced across classes (`evaljev/data.py`), committed in `data/`.
-- Both models get the same instruction sentence and option names. Terra's `label` is a schema enum.
-- Confidence = probability of the chosen answer. Jev's comes from its returned distribution;
-  Terra's is the number it writes in the JSON.
-- Latency = wall-clock time of the successful HTTP request, same clock for both.
-- Cost: Jev `input_tokens × $0.042/M` (output is free); Terra as billed by OpenRouter.
-- Every request and raw response is in `results/<task>/<model>.jsonl`.
+The samples are seeded and balanced across classes by `evaljev/data.py` and committed in `data/`.
+
+Both models get the same instruction sentence and the same option names. Terra's `label` field is a schema enum of those options.
+
+Confidence means the probability of the chosen answer. For Jev it comes from the distribution it returns. For Terra it is the number the model writes in the JSON.
+
+Latency is the wall-clock time of the successful HTTP request, measured the same way for both models.
+
+Jev's cost is input tokens times $0.042 per million, because output is free. Terra's cost is what OpenRouter billed.
+
+Every request and raw response is in `results/<task>/<model>.jsonl`.
 
 ## Caveats
 
-- All three datasets are public and old. Either model may have trained on them.
-- Terra's confidence is self-reported and clusters at 0.98–0.99; Jev's is a real distribution.
-  That should favour Jev on calibration.
-- One run, one machine, one day. TypeSafe serves from the US West Coast; OpenRouter adds a hop.
-- No prompt tuning on either side. The 77 intent options were bare names with no descriptions.
-- n = 300 per task: differences under about 5 points are noise.
+All three datasets are public and old. Either model may have trained on them.
+
+Terra's confidence is self-reported and clusters at 0.98 to 0.99. Jev's is a real distribution. That should favour Jev on calibration.
+
+This is one run from one machine on one day. TypeSafe serves from the US West Coast and OpenRouter adds a network hop.
+
+Neither model's prompt was tuned. The 77 routing options were bare names with no descriptions.
+
+With 300 items per task, differences under about 5 points are noise.
 
 ## Rerun it
 
@@ -100,5 +97,4 @@ uv run python -m evaljev.report                               # results/summary.
 uv run pytest
 ```
 
-Runs resume: scored ids are skipped, failed ones retried. Delete `results/<task>/<model>.jsonl`
-to redo a pair. The full run cost $0.045 on Jev and $2.10 on OpenRouter.
+Runs resume. Items already scored are skipped and failed items are retried. Delete `results/<task>/<model>.jsonl` to redo that pair. The full run cost $0.045 on Jev and $2.10 on OpenRouter.
