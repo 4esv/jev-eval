@@ -16,7 +16,7 @@ from evaljev.data import TASKS, load
 from evaljev.runners import RUNNERS, load_env
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
-CONCURRENCY = {"jev": 16, "terra": 8}
+CONCURRENCY = {"jev": 16, "terra": 8, "terra-reason": 8}
 
 
 def out_path(task: str, model: str, tag: str) -> Path:
@@ -28,8 +28,10 @@ def read(path: Path) -> list[dict]:
 
 
 def spent(model: str) -> float:
-    """Total recorded spend for a model across every results file, all tasks and tags."""
-    return sum(r.get("cost_usd") or 0 for p in RESULTS.glob(f"*/{model}*.jsonl") for r in read(p))
+    """Recorded spend across every results file. Jev is capped alone; OpenRouter models share one cap."""
+    files = RESULTS.glob("*/jev*.jsonl") if model == "jev" else (
+        p for p in RESULTS.glob("*/*.jsonl") if not p.name.startswith("jev"))
+    return sum(r.get("cost_usd") or 0 for p in files for r in read(p))
 
 
 async def run(task: str, model: str, n: int, tag: str, cap: float) -> None:
@@ -85,7 +87,7 @@ def main() -> None:
     ap.add_argument("--model", required=True, choices=sorted(RUNNERS))
     ap.add_argument("--n", type=int, default=300)
     ap.add_argument("--tag", default="", help="separate output file, e.g. 'rerun' for determinism")
-    ap.add_argument("--cap", type=float, default=10.0, help="abort when this model's total spend (USD) reaches this")
+    ap.add_argument("--cap", type=float, default=10.0, help="abort when total spend (USD) reaches this; all OpenRouter models share it")
     a = ap.parse_args()
     load_env()
     for t in TASKS if a.task == "all" else [a.task]:
