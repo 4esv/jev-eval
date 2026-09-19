@@ -1,0 +1,8 @@
+{
+ "kind": "noul",
+ "instructions": "Is this movie review positive?",
+ "criteria": {
+  "true": "The reviewer liked the movie",
+  "false": "The reviewer disliked the movie"
+ }
+}

@@ -1,0 +1,4 @@
+{
+ "kind": "choice",
+ "instructions": "Which banking customer-support intent does this customer message express?"
+}

@@ -17,14 +17,10 @@ JEV_MODEL = "jev-latest"
 JEV_USD_PER_INPUT_TOKEN = 0.042 / 1e6  # output tokens are free
 
 OR_URL = "https://openrouter.ai/api/v1/chat/completions"
-TERRA_MODEL = "openai/gpt-5.6-terra"
-TERRA_USD_IN, TERRA_USD_OUT = 2.0 / 1e6, 12.0 / 1e6  # fallback if OpenRouter omits usage.cost
 
-INSTRUCTIONS = {
-    "intent": "Which banking customer-support intent does this customer message express?",
-    "sentiment5": "What is the overall sentiment of this movie review sentence?",
-    "polarity": "Is this movie review positive?",
-}
+def task_spec(task: str) -> dict:
+    """data/<task>.task.json: {"kind": "choice"|"score"|"noul", "instructions": "...", "criteria": {...} (noul only)}."""
+    return json.loads((Path(__file__).resolve().parent.parent / "data" / f"{task}.task.json").read_text())
 
 RETRY_STATUS = {408, 429, 500, 502, 503, 504, 529}
 
@@ -72,28 +68,26 @@ async def _post(client: httpx.AsyncClient, url: str, headers: dict, body: dict) 
 
 
 def jev_question(task: str, names: list[str]) -> dict:
-    if task == "intent":
-        return {"type": "choice", "instructions": INSTRUCTIONS[task], "criteria": {display(n): None for n in names}}
-    if task == "sentiment5":
-        return {"type": "score", "instructions": INSTRUCTIONS[task], "criteria": names}
-    return {
-        "type": "noul",
-        "instructions": INSTRUCTIONS[task],
-        "criteria": {"true": "The reviewer liked the movie", "false": "The reviewer disliked the movie"},
-    }
+    spec = task_spec(task)
+    if spec["kind"] == "choice":
+        return {"type": "choice", "instructions": spec["instructions"], "criteria": {display(n): None for n in names}}
+    if spec["kind"] == "score":
+        return {"type": "score", "instructions": spec["instructions"], "criteria": names}
+    return {"type": "noul", "instructions": spec["instructions"], "criteria": spec["criteria"]}
 
 
 def jev_parse(task: str, names: list[str], ans: dict) -> tuple[str, dict, float | None]:
     """Returns (pred label, probs over label names, TypeSafe's own confidence field)."""
-    if task == "intent":
+    kind = task_spec(task)["kind"]
+    if kind == "choice":
         back = {display(n): n for n in names}
         probs = {back[k]: v for k, v in ans["probabilities"].items()}
         return back[ans["choice"]], probs, ans.get("confidence")
-    if task == "sentiment5":
+    if kind == "score":
         probs = {names[int(k)]: v for k, v in ans["probabilities"].items()}
         return max(probs, key=probs.get), probs, ans.get("confidence")
-    p = ans["noul"]
-    probs = {"positive": p, "negative": 1 - p}
+    p = ans["noul"]  # noul tasks: names[1] is the "yes" label
+    probs = {names[1]: p, names[0]: 1 - p}
     return max(probs, key=probs.get), probs, None
 
 
@@ -119,18 +113,19 @@ async def jev(client: httpx.AsyncClient, task: str, names: list[str], item: dict
     }
 
 
-def terra_messages(task: str, names: list[str], text: str) -> list[dict]:
+def llm_messages(task: str, names: list[str], text: str) -> list[dict]:
     options = "\n".join(f"- {display(n)}" for n in names)
     system = (
         "You classify text for software. Answer with exactly one option from the list, and a "
         "confidence between 0 and 1 that your chosen option is correct. Be calibrated: of all "
         "answers you give with confidence 0.8, about 80% should be correct."
     )
-    user = f"{INSTRUCTIONS[task]}\n\nOptions:\n{options}\n\nText:\n{text}"
+    user = f"{task_spec(task)['instructions']}\n\nOptions:\n{options}\n\nText:\n{text}"
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
-async def terra(client: httpx.AsyncClient, task: str, names: list[str], item: dict, effort: str | None = None) -> dict:
+async def openrouter(client: httpx.AsyncClient, task: str, names: list[str], item: dict, model: str, effort: str | None = None) -> dict:
+    """Any OpenRouter chat model with strict JSON-schema output; effort opts into reasoning where supported."""
     shown = [display(n) for n in names]
     schema = {
         "type": "object",
@@ -142,12 +137,11 @@ async def terra(client: httpx.AsyncClient, task: str, names: list[str], item: di
         "additionalProperties": False,
     }
     body = {
-        "model": TERRA_MODEL,
-        "messages": terra_messages(task, names, item["text"]),
+        "model": model,
+        "messages": llm_messages(task, names, item["text"]),
         "response_format": {"type": "json_schema", "json_schema": {"name": "decision", "strict": True, "schema": schema}},
         "usage": {"include": True},
     }
-    # NOTE: OpenRouter's default for Terra spends 0 reasoning tokens; effort opts into reasoning.
     if effort:
         body["reasoning"] = {"effort": effort}
     headers = {"Authorization": f"Bearer {_key('OPENROUTER_API_KEY')}"}
@@ -162,7 +156,7 @@ async def terra(client: httpx.AsyncClient, task: str, names: list[str], item: di
     usage = data.get("usage", {})
     cost = usage.get("cost")
     if cost is None:
-        cost = (usage.get("prompt_tokens") or 0) * TERRA_USD_IN + (usage.get("completion_tokens") or 0) * TERRA_USD_OUT
+        raise RuntimeError("OpenRouter omitted usage.cost; pass 'usage': {'include': True}")
     return {
         "model_version": data.get("model"),
         "provider": data.get("provider"),
@@ -181,8 +175,15 @@ async def terra(client: httpx.AsyncClient, task: str, names: list[str], item: di
     }
 
 
-async def terra_reason(client: httpx.AsyncClient, task: str, names: list[str], item: dict) -> dict:
-    return await terra(client, task, names, item, effort="medium")
+def runner(model: str, effort: str | None):
+    """'jev' -> TypeSafe; anything else -> that OpenRouter model id."""
+    if model == "jev":
+        return jev
+
+    async def run(client, task, names, item):
+        return await openrouter(client, task, names, item, model, effort)
+    return run
 
 
-RUNNERS = {"jev": jev, "terra": terra, "terra-reason": terra_reason}
+def slug(model: str, effort: str | None) -> str:
+    return model.replace("/", "__") + (f"+{effort}" if effort else "")

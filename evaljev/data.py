@@ -73,6 +73,11 @@ def build(task: str, n: int = N) -> Path:
     return path
 
 
+def tasks() -> list[str]:
+    """Every task with a data/<task>.task.json sidecar."""
+    return sorted(p.name[: -len(".task.json")] for p in DATA.glob("*.task.json"))
+
+
 def load(task: str) -> tuple[list[dict], list[str]]:
     rows = [json.loads(l) for l in (DATA / f"{task}.jsonl").read_text().splitlines()]
     names = json.loads((DATA / f"{task}.labels.json").read_text())

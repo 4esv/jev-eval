@@ -12,15 +12,16 @@ from pathlib import Path
 
 import httpx
 
-from evaljev.data import TASKS, load
-from evaljev.runners import RUNNERS, load_env
+from evaljev.data import load, tasks
+from evaljev.runners import load_env, runner, slug
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
-CONCURRENCY = {"jev": 16, "terra": 8, "terra-reason": 8}
+CONCURRENCY = 16  # Jev; OpenRouter models use OR_CONCURRENCY
+OR_CONCURRENCY = 8
 
 
-def out_path(task: str, model: str, tag: str) -> Path:
-    return RESULTS / task / (f"{model}.{tag}.jsonl" if tag else f"{model}.jsonl")
+def out_path(task: str, name: str, tag: str) -> Path:
+    return RESULTS / task / (f"{name}~{tag}.jsonl" if tag else f"{name}.jsonl")  # ~ separates a tag; model slugs contain dots
 
 
 def read(path: Path) -> list[dict]:
@@ -34,21 +35,22 @@ def spent(model: str) -> float:
     return sum(r.get("cost_usd") or 0 for p in files for r in read(p))
 
 
-async def run(task: str, model: str, n: int, tag: str, cap: float) -> None:
+async def run(task: str, model: str, effort: str | None, n: int, tag: str, cap: float) -> None:
     rows, names = load(task)
-    path = out_path(task, model, tag)
+    name = slug(model, effort)
+    path = out_path(task, name, tag)
     path.parent.mkdir(parents=True, exist_ok=True)
     done = {r["id"] for r in read(path) if not r.get("error")}
     todo = [r for r in rows[:n] if r["id"] not in done]
     total = spent(model)
-    print(f"{task}/{model}{'.' + tag if tag else ''}: {len(done)} done, {len(todo)} to run, spent so far ${total:.4f}")
+    print(f"{task}/{name}{'~' + tag if tag else ''}: {len(done)} done, {len(todo)} to run, spent so far ${total:.4f}")
     if not todo:
         return
 
-    sem = asyncio.Semaphore(CONCURRENCY[model])
+    sem = asyncio.Semaphore(CONCURRENCY if model == "jev" else OR_CONCURRENCY)
     lock = asyncio.Lock()
     stop = asyncio.Event()
-    fn = RUNNERS[model]
+    fn = runner(model, effort)
 
     async def one(client: httpx.AsyncClient, item: dict) -> None:
         nonlocal total
@@ -59,7 +61,7 @@ async def run(task: str, model: str, n: int, tag: str, cap: float) -> None:
                 stop.set()
                 print(f"ABORT: {model} spend ${total:.4f} reached cap ${cap}")
                 return
-            rec = {"id": item["id"], "task": task, "model": model, "gold": item["label"], "ts": time.time()}
+            rec = {"id": item["id"], "task": task, "model": name, "gold": item["label"], "ts": time.time()}
             try:
                 rec |= await fn(client, task, names, item)
             except Exception as e:  # recorded, retried on the next resume
@@ -83,15 +85,16 @@ async def run(task: str, model: str, n: int, tag: str, cap: float) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--task", default="all", choices=[*TASKS, "all"])
-    ap.add_argument("--model", required=True, choices=sorted(RUNNERS))
+    ap.add_argument("--task", default="all", help="a task name from data/, or all")
+    ap.add_argument("--model", required=True, help="'jev' or any OpenRouter model id, e.g. openai/gpt-5.6-terra")
+    ap.add_argument("--reasoning", default=None, help="OpenRouter reasoning effort: low, medium, high")
     ap.add_argument("--n", type=int, default=300)
     ap.add_argument("--tag", default="", help="separate output file, e.g. 'rerun' for determinism")
     ap.add_argument("--cap", type=float, default=10.0, help="abort when total spend (USD) reaches this; all OpenRouter models share it")
     a = ap.parse_args()
     load_env()
-    for t in TASKS if a.task == "all" else [a.task]:
-        asyncio.run(run(t, a.model, a.n, a.tag, a.cap))
+    for t in (tasks() if a.task == "all" else [a.task]):
+        asyncio.run(run(t, a.model, a.reasoning, a.n, a.tag, a.cap))
 
 
 if __name__ == "__main__":

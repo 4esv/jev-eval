@@ -1,6 +1,6 @@
 # jev-eval
 
-Independent measurement of [TypeSafe Jev](https://typesafe.ai) against GPT-5.6 Terra on three public labelled classification tasks: accuracy, calibration, latency, cost.
+Benchmark [TypeSafe Jev](https://typesafe.ai) against any OpenRouter model on labelled classification tasks: accuracy, calibration, latency, cost. Ships three public tasks and the results below for GPT-5.6 Terra.
 
 ## Results
 
@@ -30,14 +30,16 @@ Full tables, threshold coverage and the reasoning run: [`results/summary.md`](re
 cp .env.example .env        # TYPESAFE_API_KEY, OPENROUTER_API_KEY
 uv sync
 uv run python -m evaljev.run --model jev --n 300
-uv run python -m evaljev.run --model terra --n 300 --cap 10
-uv run python -m evaljev.run --model terra-reason --n 300 --cap 10
+uv run python -m evaljev.run --model openai/gpt-5.6-terra --n 300 --cap 10
+uv run python -m evaljev.run --model openai/gpt-5.6-terra --reasoning medium --n 300 --cap 10
 uv run python -m evaljev.run --model jev --n 300 --tag rerun
 uv run python -m evaljev.report
 uv run pytest
 ```
 
-Runs resume; delete `results/<task>/<model>.jsonl` to redo a pair. `--cap` stops at that many dollars of OpenRouter spend. The full run cost $0.045 on Jev and $2.10 on OpenRouter.
+`--model` is `jev` or any OpenRouter model id; `--reasoning` sets the effort where the model supports it. `--cap` stops at that many dollars of total OpenRouter spend across `results/`. Runs resume; delete `results/<task>/<model>.jsonl` to redo a pair. The report includes every model that has a main results file in every task. The Terra runs cost $2.10 on OpenRouter and $0.045 on Jev.
+
+To add a task, put `data/<name>.jsonl` (`{"id", "text", "label"}` per line), `data/<name>.labels.json` (the label list; for `noul` tasks `[no, yes]`) and `data/<name>.task.json` (`{"kind": "choice"|"score"|"noul", "instructions": "...", "criteria": {"true": ..., "false": ...}}`, criteria for `noul` only) next to the others.
 
 ## Notes
 
