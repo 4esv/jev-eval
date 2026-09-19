@@ -1,4 +1,4 @@
-"""One call per item to Jev (TypeSafe) or GPT-5.6 Terra (OpenRouter), normalized to one record shape.
+"""One call per item to Jev (TypeSafe) or any OpenRouter model, normalized to one record shape.
 
 Both runners time only the successful HTTP round trip with the same clock, so latency is comparable.
 """
@@ -150,7 +150,7 @@ async def openrouter(client: httpx.AsyncClient, task: str, names: list[str], ite
     out = json.loads(content)
     back = dict(zip(shown, names))
     pred, c = back[out["label"]], float(out["confidence"])
-    # NOTE: Terra states one confidence; other options get the remainder spread evenly.
+    # NOTE: the model states one confidence; other options get the remainder spread evenly.
     rest = (1 - c) / (len(names) - 1)
     probs = {n: (c if n == pred else rest) for n in names}
     usage = data.get("usage", {})
