@@ -5,8 +5,6 @@ import random
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from datasets import load_dataset
-
 SEED = 20260917
 N = 300
 DATA = Path(__file__).resolve().parent.parent / "data"
@@ -23,6 +21,8 @@ SST5_LABELS = ["very negative", "negative", "neutral", "positive", "very positiv
 
 
 def _rows(task: str) -> tuple[list[dict], list[str]]:
+    from datasets import load_dataset  # NOTE: only rebuilding the shipped samples needs it (--group build)
+
     spec = TASKS[task]
     ds = load_dataset(spec["hf"], split=spec["split"])
     if task == "intent":
@@ -78,10 +78,56 @@ def tasks() -> list[str]:
     return sorted(p.name[: -len(".task.json")] for p in DATA.glob("*.task.json"))
 
 
+KINDS = ("choice", "score", "noul")
+
+
 def load(task: str) -> tuple[list[dict], list[str]]:
-    rows = [json.loads(l) for l in (DATA / f"{task}.jsonl").read_text().splitlines()]
-    names = json.loads((DATA / f"{task}.labels.json").read_text())
-    return rows, names
+    """Rows and label names, validated. labels.json is optional for `choice` (defaults to the labels in the data)."""
+    spec_path, rows_path, names_path = (DATA / f"{task}{ext}" for ext in (".task.json", ".jsonl", ".labels.json"))
+    for p in (spec_path, rows_path):
+        if not p.exists():
+            raise SystemExit(f"{task}: missing {p.relative_to(DATA.parent)}; tasks available: {', '.join(tasks())}")
+    spec = json.loads(spec_path.read_text())
+    rows = [json.loads(l) for l in rows_path.read_text().splitlines() if l.strip()]
+    names = json.loads(names_path.read_text()) if names_path.exists() else None
+    errors = check(spec, rows, names)
+    if errors:
+        raise SystemExit(f"{task}: invalid task\n  " + "\n  ".join(errors))
+    return rows, names if names is not None else sorted({r["label"] for r in rows})
+
+
+def check(spec: dict, rows: list[dict], names: list[str] | None) -> list[str]:
+    """Every problem with a task definition, as messages; empty when it can be run."""
+    errors = []
+    kind = spec.get("kind")
+    if kind not in KINDS:
+        errors.append(f"task.json kind is {kind!r}; expected one of {', '.join(KINDS)}")
+    if not spec.get("instructions"):
+        errors.append("task.json needs instructions")
+    if kind == "noul" and set(spec.get("criteria") or {}) != {"true", "false"}:
+        errors.append('noul task.json needs criteria {"true": ..., "false": ...}')
+    if names is None and kind in ("score", "noul"):
+        errors.append(f"{kind} needs labels.json: label order carries meaning (score: low to high; noul: [no, yes])")
+    if names is not None:
+        if len(set(names)) != len(names):
+            errors.append("labels.json has duplicates")
+        if kind == "noul" and len(names) != 2:
+            errors.append(f"noul needs exactly 2 labels [no, yes]; labels.json has {len(names)}")
+    if not rows:
+        errors.append("no rows")
+    bad = [i for i, r in enumerate(rows, 1) if not all(isinstance(r.get(k), str) and r[k] for k in ("id", "text", "label"))]
+    if bad:
+        errors.append(f'{len(bad)} rows are not {{"id", "text", "label"}} strings; first at line {bad[0]}')
+        return errors
+    ids = Counter(r["id"] for r in rows)
+    dup = [i for i, c in ids.items() if c > 1]
+    if dup:
+        errors.append(f"{len(dup)} duplicate ids, e.g. {dup[0]!r}")
+    if names is not None:
+        unknown = sorted({r["label"] for r in rows} - set(names))
+        if unknown:
+            errors.append(f"{len(unknown)} labels in the data are not in labels.json, e.g. {unknown[0]!r}")
+    return errors
 
 
 def stats(task: str) -> str:

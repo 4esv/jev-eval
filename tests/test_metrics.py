@@ -55,3 +55,26 @@ def test_ordinal_and_agreement():
     lv = ["lo", "mid", "hi"]
     assert M.ordinal_mae(["lo", "hi"], ["mid", "lo"], lv) == 1.5
     assert M.agreement({"1": "a", "2": "b", "3": "c"}, {"1": "a", "2": "x"}) == 0.5
+
+
+def test_check_accepts_the_shipped_tasks():
+    from evaljev.data import load, tasks
+    for t in tasks():
+        rows, names = load(t)
+        assert len(rows) == 300 and set(r["label"] for r in rows) <= set(names)
+
+
+def test_check_reports_each_problem():
+    from evaljev.data import check
+    ok = [{"id": "a", "text": "hi", "label": "x"}, {"id": "b", "text": "yo", "label": "y"}]
+    spec = {"kind": "choice", "instructions": "Which?"}
+    assert check(spec, ok, None) == [] and check(spec, ok, ["x", "y"]) == []
+    assert "kind" in check({"instructions": "q"}, ok, None)[0]
+    assert "instructions" in check({"kind": "choice"}, ok, None)[0]
+    assert "criteria" in check({"kind": "noul", "instructions": "q"}, ok, ["x", "y"])[0]
+    assert "needs labels.json" in check({"kind": "score", "instructions": "q"}, ok, None)[0]
+    assert "exactly 2" in check({"kind": "noul", "instructions": "q", "criteria": {"true": "", "false": ""}}, ok, ["x", "y", "z"])[0]
+    assert "not in labels.json" in check(spec, ok, ["x"])[0]
+    assert "duplicate ids" in check(spec, ok + [ok[0]], None)[0]
+    assert "line 2" in check(spec, [ok[0], {"id": "c", "text": "", "label": "x"}], None)[0]
+    assert check(spec, [], None) == ["no rows"]

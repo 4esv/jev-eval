@@ -1,7 +1,7 @@
 """Resumable runner: appends one JSON line per item to results/<task>/<model>[.<tag>].jsonl.
 
     uv run python -m evaljev.run --task intent --model jev --n 20
-    uv run python -m evaljev.run --task all --model terra --n 300 --cap 10
+    uv run python -m evaljev.run --task all --model openai/gpt-5.6-terra --n 300 --cap 10
 """
 
 import argparse
