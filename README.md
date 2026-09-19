@@ -1,6 +1,6 @@
 # jev-eval
 
-Benchmark [TypeSafe Jev](https://typesafe.ai) against any OpenRouter model on labelled classification tasks: accuracy, calibration, latency, cost. Ships three public tasks and the results below for GPT-5.6 Terra.
+Benchmark [TypeSafe Jev](https://typesafe.ai) against any OpenRouter model on labelled classification data: accuracy, calibration, latency, cost, determinism. Runs on your own data or the three public tasks included; the results below are those three against GPT-5.6 Terra.
 
 ## Results
 
@@ -29,17 +29,41 @@ Full tables, threshold coverage and the reasoning run: [`results/summary.md`](re
 ```bash
 cp .env.example .env        # TYPESAFE_API_KEY, OPENROUTER_API_KEY
 uv sync
-uv run python -m evaljev.run --model jev --n 300
-uv run python -m evaljev.run --model openai/gpt-5.6-terra --n 300 --cap 10
-uv run python -m evaljev.run --model openai/gpt-5.6-terra --reasoning medium --n 300 --cap 10
-uv run python -m evaljev.run --model jev --n 300 --tag rerun
+uv run python -m evaljev.run --model jev
+uv run python -m evaljev.run --model openai/gpt-5.6-terra
+uv run python -m evaljev.run --model openai/gpt-5.6-terra --reasoning medium
+uv run python -m evaljev.run --model jev --tag rerun
 uv run python -m evaljev.report
 uv run pytest
 ```
 
-`--model` is `jev` or any OpenRouter model id; `--reasoning` sets the effort where the model supports it. `--cap` stops at that many dollars of total OpenRouter spend across `results/`. Runs resume; delete `results/<task>/<model>.jsonl` to redo a pair. The report includes every model that has a main results file in every task. The Terra runs cost $2.10 on OpenRouter and $0.045 on Jev.
+Your own task is two files in `data/`:
 
-To add a task, put `data/<name>.jsonl` (`{"id", "text", "label"}` per line), `data/<name>.labels.json` (the label list; for `noul` tasks `[no, yes]`) and `data/<name>.task.json` (`{"kind": "choice"|"score"|"noul", "instructions": "...", "criteria": {"true": ..., "false": ...}}`, criteria for `noul` only) next to the others.
+```
+data/tickets.jsonl        {"id": "t1", "text": "App crashes when I open settings", "label": "bug"}
+data/tickets.task.json    {"kind": "choice", "instructions": "What kind of support ticket is this?"}
+```
+
+```bash
+uv run python -m evaljev.run --task tickets --model jev
+uv run python -m evaljev.run --task tickets --model openai/gpt-5.6-terra
+uv run python -m evaljev.report
+```
+
+| flag | default | |
+|---|---|---|
+| `--model` | required | `jev` or any OpenRouter model id. |
+| `--task` | `all` | A task name from `data/`. |
+| `--n` | 300 | Run the first n rows. |
+| `--reasoning` | off | `low`, `medium` or `high`, where the model supports it. |
+| `--tag` | none | Writes a separate file. `rerun` adds a determinism line to the report. |
+| `--cap` | 10 | Stops when recorded spend in `results/` reaches this many dollars. Jev has its own total; OpenRouter models share one. |
+
+| kind | Jev question | files |
+|---|---|---|
+| `choice` | One of the labels. | `labels.json` optional; defaults to the labels in the data. |
+| `score` | Ordered levels. The report adds ordinal MAE. | `data/<name>.labels.json` lists the levels low to high. |
+| `noul` | Yes or no, as a probability. | `labels.json` is `[no, yes]`; `task.json` adds `"criteria": {"true": "...", "false": "..."}`. |
 
 ## Notes
 
@@ -49,7 +73,9 @@ To add a task, put `data/<name>.jsonl` (`{"id", "text", "label"}` per line), `da
 | `sentiment5` | SST-5 test (`SetFit/sst5`), 60 per level | `score`, 5 ordered levels | JSON `{label, confidence}` |
 | `polarity` | IMDB test, reviews ≤ 300 words, 150 per class | `noul` | JSON `{label, confidence}` |
 
-- Samples are seeded and stratified (`evaljev/data.py`) and committed in `data/`.
+- Samples are seeded and stratified (`evaljev/data.py`) and committed in `data/`. Rebuild them with `uv run --group build python -m evaljev.data`.
+- Runs resume; delete `results/<task>/<model>.jsonl` to redo a pair. A task is validated before any call is made. Each report section lists the models that have results for that task.
+- The Terra runs cost $2.10 on OpenRouter and $0.045 on Jev.
 - Both models get the same instruction and option names. Terra's `label` is a schema enum.
 - Confidence is the probability of the chosen label: Jev's returned distribution; Terra's stated number.
 - Latency is the wall-clock time of the successful HTTP request, same clock for both.
