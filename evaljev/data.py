@@ -15,6 +15,8 @@ TASKS = {
     "intent": {"hf": "mteb/banking77", "split": "test", "kind": "choice"},
     "sentiment5": {"hf": "SetFit/sst5", "split": "test", "kind": "score"},
     "polarity": {"hf": "stanfordnlp/imdb", "split": "test", "kind": "noul", "max_words": 300},
+    # Out-of-sample: named in no clone's training list, and 151 options test high-cardinality choice.
+    "clinc": {"hf": "clinc/clinc_oos", "config": "plus", "split": "test", "kind": "choice"},
 }
 
 SST5_LABELS = ["very negative", "negative", "neutral", "positive", "very positive"]
@@ -24,8 +26,11 @@ def _rows(task: str) -> tuple[list[dict], list[str]]:
     from datasets import load_dataset  # NOTE: only rebuilding the shipped samples needs it (--group build)
 
     spec = TASKS[task]
-    ds = load_dataset(spec["hf"], split=spec["split"])
-    if task == "intent":
+    ds = load_dataset(spec["hf"], *( [spec["config"]] if "config" in spec else [] ), split=spec["split"])
+    if task == "clinc":
+        names = list(ds.features["intent"].names)
+        rows = [{"text": r["text"], "label": names[r["intent"]]} for r in ds]
+    elif task == "intent":
         names = sorted(set(ds["label_text"]))
         rows = [{"text": r["text"], "label": r["label_text"]} for r in ds]
     elif task == "sentiment5":

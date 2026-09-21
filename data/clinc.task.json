@@ -1,0 +1,4 @@
+{
+ "kind": "choice",
+ "instructions": "Which intent does this user utterance express? Answer 'oos' if it matches none of the other intents."
+}

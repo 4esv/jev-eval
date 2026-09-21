@@ -63,7 +63,7 @@ def summarize(task: str, model: str, kind: str) -> dict:
         "p50": M.percentile(lat, 50),
         "p95": M.percentile(lat, 95),
         "usd_1k": 1000 * float(np.mean([r["cost_usd"] for r in rs])),
-        "in_tok": float(np.mean([r["in_tok"] for r in rs])),
+        "in_tok": (float(np.mean(toks)) if (toks := [r["in_tok"] for r in rs if r.get("in_tok") is not None]) else None),
         "selective": M.selective(conf, ok),
         "rel": M.reliability(conf, ok),
         "conf_median": float(np.median(conf)),
@@ -181,7 +181,9 @@ def main() -> None:
                          else f"{LABEL[m]} is {1 / ratio:.1f}x faster at p50")
                 cost = ("free to run, self-hosted" if t["usd_1k"] == 0
                         else f"Jev is {t['usd_1k'] / j['usd_1k']:.0f}x cheaper per call")
-                L += ["", f"Jev vs {LABEL[m]}: {speed}; {cost}; mean input tokens {j['in_tok']:.0f} vs {t['in_tok']:.0f}."]
+                toks = ("" if None in (j["in_tok"], t["in_tok"])
+                        else f"; mean input tokens {j['in_tok']:.0f} vs {t['in_tok']:.0f}")
+                L += ["", f"Jev vs {LABEL[m]}: {speed}; {cost}{toks}."]
         for m in here:
             if (RESULTS / task / f"{m}~rerun.jsonl").exists():
                 same, drift = determinism(task, m)

@@ -10,10 +10,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-laya = [
+local = [
     "laya>=0.3.4",
     "torch>=2.0",
     "transformers>=4.45",
+    "sentencepiece>=0.2",
+    "protobuf>=4",
 ]
 
 [dependency-groups]

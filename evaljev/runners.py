@@ -96,10 +96,12 @@ def jev_parse(task: str, names: list[str], ans: dict) -> tuple[str, dict, float 
     return max(probs, key=probs.get), probs, None
 
 
-async def jev(client: httpx.AsyncClient, task: str, names: list[str], item: dict) -> dict:
-    body = {"state": item["text"], "model": JEV_MODEL, "questions": {"q": jev_question(task, names)}}
-    headers = {"Authorization": f"Bearer {_key('TYPESAFE_API_KEY', 'API_KEY')}"}
-    data, latency, attempts, rid = await _post(client, JEV_URL, headers, body)
+async def jev(client: httpx.AsyncClient, task: str, names: list[str], item: dict,
+              url: str = JEV_URL, model: str = JEV_MODEL, priced: bool = True) -> dict:
+    """TypeSafe's System One contract. Any server speaking it (e.g. a local Kev) works by passing `url`."""
+    body = {"state": item["text"], "model": model, "questions": {"q": jev_question(task, names)}}
+    headers = {"Authorization": f"Bearer {_key('TYPESAFE_API_KEY', 'API_KEY')}"} if priced else {}
+    data, latency, attempts, rid = await _post(client, url, headers, body)
     pred, probs, ts_conf = jev_parse(task, names, data["answers"]["q"])
     usage = data.get("usage", {})
     return {
@@ -112,7 +114,7 @@ async def jev(client: httpx.AsyncClient, task: str, names: list[str], item: dict
         "attempts": attempts,
         "in_tok": usage.get("input_tokens"),
         "out_tok": usage.get("output_tokens"),
-        "cost_usd": (usage.get("input_tokens") or 0) * JEV_USD_PER_INPUT_TOKEN,
+        "cost_usd": (usage.get("input_tokens") or 0) * JEV_USD_PER_INPUT_TOKEN if priced else 0.0,
         "request_id": rid,
         "raw": data["answers"]["q"],
     }
@@ -221,6 +223,68 @@ async def laya(client: httpx.AsyncClient, task: str, names: list[str], item: dic
     }
 
 
+OPENJEV_REPO = "com-kotobalabs/open-jev-deberta-v3-large"
+_openjev: dict[str, object] = {}
+
+
+def openjev_model(repo: str):
+    """Load and cache open-jev. Its inference code ships inside the HF repo, so add the snapshot to sys.path."""
+    if repo not in _openjev:
+        import sys
+
+        from huggingface_hub import snapshot_download
+
+        path = snapshot_download(repo)
+        if path not in sys.path:
+            sys.path.insert(0, path)
+        from typed_decisions.open_jev import OpenJev
+
+        _openjev[repo] = OpenJev.from_pretrained(repo)
+    return _openjev[repo]
+
+
+async def openjev(client: httpx.AsyncClient, task: str, names: list[str], item: dict, spec: str) -> dict:
+    """Local forward pass. Takes a list of questions with `options`; score probabilities are keyed by
+    level name rather than index, and noul carries no confidence, so it needs its own parse."""
+    _, _, repo = spec.partition(":")
+    model = openjev_model(repo or OPENJEV_REPO)
+    kind = task_spec(task)["kind"]
+    q = {"type": kind, "instructions": task_spec(task)["instructions"]}
+    if kind == "choice":
+        q["options"] = [display(n) for n in names]
+    elif kind == "score":
+        q["options"] = names
+    t0 = time.perf_counter()
+    out = await asyncio.to_thread(model.decide, item["text"], [q])
+    latency = time.perf_counter() - t0
+    ans = out[0]
+    if kind == "choice":
+        back = {display(n): n for n in names}
+        probs = {back[k]: v for k, v in ans["probabilities"].items()}
+        pred = back[ans["choice"]]
+    elif kind == "score":
+        probs = dict(ans["probabilities"])
+        pred = max(probs, key=probs.get)
+    else:
+        p = ans["noul"]
+        probs = {names[1]: p, names[0]: 1 - p}
+        pred = max(probs, key=probs.get)
+    return {
+        "model_version": spec,
+        "pred": pred,
+        "probs": probs,
+        "conf": max(probs.values()),
+        "ts_confidence": ans.get("confidence"),
+        "latency_s": latency,
+        "attempts": 1,
+        "in_tok": None,
+        "out_tok": None,
+        "cost_usd": 0.0,
+        "request_id": "",
+        "raw": ans,
+    }
+
+
 def runner(model: str, effort: str | None):
     """'jev' -> TypeSafe; 'laya...' -> a local checkpoint; anything else -> that OpenRouter model id."""
     if model == "jev":
@@ -229,6 +293,18 @@ def runner(model: str, effort: str | None):
         async def run_laya(client, task, names, item):
             return await laya(client, task, names, item, model)
         return run_laya
+    if model.startswith("kev"):
+        # A local server speaking the System One contract; KEV_URL overrides the default port.
+        url = os.environ.get("KEV_URL", "http://127.0.0.1:8009") + "/v1/systemone"
+        _, _, name = model.partition(":")
+
+        async def run_kev(client, task, names, item):
+            return await jev(client, task, names, item, url=url, model=name or "kev", priced=False)
+        return run_kev
+    if model == "open-jev" or model.startswith("open-jev:"):
+        async def run_openjev(client, task, names, item):
+            return await openjev(client, task, names, item, model)
+        return run_openjev
 
     async def run(client, task, names, item):
         return await openrouter(client, task, names, item, model, effort)

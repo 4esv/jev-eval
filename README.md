@@ -1,24 +1,35 @@
 # jev-eval
 
-Benchmark [TypeSafe Jev](https://typesafe.ai) against any OpenRouter model or a local checkpoint on labelled classification data: accuracy, calibration, confidence distribution, latency, cost. Ships four tasks; the results below are those tasks against GPT-5.6 Terra and [Laya](https://huggingface.co/convaiinnovations/laya).
+Benchmark [TypeSafe Jev](https://typesafe.ai) against any OpenRouter model or a local checkpoint on labelled classification data: accuracy, calibration, confidence distribution, latency, cost. Ships five tasks; the results below are Jev, GPT-5.6 Terra, and three open Jev-shaped models.
 
 ## Results
 
-300 items per task, run 2026-09-17 and 2026-09-21. `jev-1.13.0`, `openai/gpt-5.6-terra` via OpenRouter, `convaiinnovations/laya` (421M, Apache 2.0) local on an M-series GPU.
+300 items per task. `jev-1.13.0`; `openai/gpt-5.6-terra` via OpenRouter; [Laya](https://huggingface.co/convaiinnovations/laya) 421M, [open-jev](https://huggingface.co/com-kotobalabs/open-jev-deberta-v3-large) 435M and [Kev-0.8B](https://huggingface.co/jaredpalmer/kev-0.8b) run locally on an M-series GPU.
 
-| | intent (77 classes) | sentiment (5 levels) | polarity as `noul` | polarity as `choice` |
-|---|---|---|---|---|
-| **Accuracy** Jev / Laya / Terra | 0.780 / 0.370 / **0.847** | 0.570 / 0.310 / **0.593** | **0.970** / 0.507 / **0.970** | **0.967** / 0.947 / — |
-| **ECE** (lower better) Jev / Laya / Terra | 0.110 / 0.520 / **0.081** | **0.200** / 0.317 / 0.303 | 0.042 / 0.496 / **0.020** | 0.022 / **0.020** / — |
-| **AUROC** of confidence Jev / Laya / Terra | **0.831** / 0.696 / 0.807 | 0.611 / **0.711** / 0.636 | 0.935 / 0.897 / **0.964** | **0.909** / 0.885 / — |
-| **p50 latency** Jev / Laya / Terra | 0.20 s / **0.10 s** / 1.04 s | 0.19 s / **0.04 s** / 1.06 s | 0.20 s / **0.08 s** / 1.04 s | 0.18 s / **0.08 s** / — |
-| **Cost per 1k** Jev / Laya / Terra | $0.040 / **$0** / $2.02 | $0.014 / **$0** / $0.64 | $0.021 / **$0** / $0.85 | $0.021 / **$0** / — |
+**Accuracy**
 
-- **Laya is 2–5x faster than Jev here and free**, but the two numbers are not the same quantity: Laya is local compute, Jev and Terra include the network round trip. Laya's latency scales with option count, not just question count: 0.04 s at 5 levels, 0.08 s at 2 options, 0.10 s at 77.
-- **Laya's `noul` collapses on this data.** It returns 0.0 on 298 of 300 reviews and scores 0.507, chance on a balanced binary task, with 99% of answers at 0.99 confidence or above. The same model, same 300 reviews, asked as a 2-option `choice`, scores 0.947. Jev scores 0.970 and 0.967 on the two framings. The collapse is unchanged by dropping `criteria` or by raising the context budget.
-- **Laya ships over-confident**, as its card states: raw ECE 0.32 to 0.52 here, against the 0.466 it reports pre-temperature. Its published 0.081 is after fitting a temperature per question type and option count; these numbers are as-shipped.
-- **High-cardinality choice is Jev's.** Raising `head_max_len` from 192 to 512, which Laya's card recommends for 50+ options, lifts intent from 0.370 to 0.463 and leaves the other tasks unchanged. Jev scores 0.780.
-- **Where Laya works, its confidence is the less saturated.** On polarity as `choice`, 33% of its answers sit at 0.99 or above against Jev's 89%, at the same ECE. On 5-level sentiment its AUROC beats Jev's, 0.711 against 0.611: it ranks its own errors better while being 26 points less accurate.
+| task | options | Jev | Terra | open-jev | Kev-0.8B | Laya |
+|---|---|---|---|---|---|---|
+| clinc (out-of-sample) | 151 | **0.897** | — | 0.610 | 0.643 | 0.497 |
+| intent (Banking77) | 77 | 0.780 | 0.847 | **0.873** | 0.770 | 0.370 |
+| sentiment5 (SST-5) | 5 | 0.570 | **0.593** | 0.560 | 0.510 | 0.310 |
+| polarity (IMDB) as `noul` | 2 | **0.970** | **0.970** | 0.957 | 0.953 | 0.507 |
+| polarity as `choice` | 2 | **0.967** | — | 0.963 | 0.950 | 0.947 |
+
+**Calibration (ECE, lower better) and p50 latency**
+
+| task | Jev | Terra | open-jev | Kev-0.8B | Laya |
+|---|---|---|---|---|---|
+| clinc | **0.039** / 0.17 s | — | 0.072 / 0.43 s | 0.260 / 0.87 s | 0.471 / **0.16 s** |
+| intent | 0.110 / 0.20 s | 0.081 / 1.04 s | **0.047** / 0.27 s | 0.146 / 0.67 s | 0.520 / **0.10 s** |
+| sentiment5 | 0.200 / 0.19 s | 0.303 / 1.06 s | **0.052** / 0.07 s | 0.110 / 0.13 s | 0.317 / **0.04 s** |
+| polarity | 0.042 / 0.20 s | **0.020** / 1.04 s | 0.036 / 0.17 s | 0.030 / 0.37 s | 0.496 / **0.08 s** |
+
+- **Training on the benchmark decides the winner.** open-jev lists `mteb/banking77` and `SetFit/sst5` as training data and beats Jev on Banking77, 0.873 against 0.780. On CLINC150 — the same job, intent classification, but in no clone's training list — it is 28.7 points behind, 0.610 against 0.897. Kev, which lists the same two datasets, shows the same reversal: 0.770 on Banking77, 0.643 on CLINC. Jev *gains* on CLINC. Quote either number alone and you get the opposite story.
+- **Only Jev is flat in option count.** From 2 to 151 options its p50 moves 0.17 to 0.20 s. Every local model degrades: Laya 0.04 → 0.16 s, open-jev 0.07 → 0.43 s, Kev 0.13 → 0.87 s. Jev scores the whole option set in one pass; its documented ceiling is 255.
+- **open-jev is the best-calibrated model here**, Jev and Terra included, on four of five tasks, at 435M parameters and no cost.
+- **Laya's `noul` fails on one phrasing, not on the primitive.** "Is this movie review positive?" returns 0.0 on 100% of reviews at near-total confidence; "Did the reviewer like the movie?" scores 0.91 on the same items, and the same question as a `choice` scores 0.947. Jev is unmoved by the wording, 0.94 against 0.93. No other model here shows it.
+- **Kev needed no adapter.** It serves TypeSafe's own `/v1/systemone` contract, so the Jev runner points at `localhost`.
 
 Full tables, confidence distributions and reliability diagrams: [`results/summary.md`](results/summary.md).
 
@@ -37,15 +48,24 @@ uv run python -m evaljev.report
 uv run pytest
 ```
 
-Local checkpoints need the extra, and one call per task with `--model laya`:
+Local checkpoints need the extra:
 
 ```bash
-uv sync --extra laya
+uv sync --extra local
 HF_HUB_DISABLE_XET=1 uv run python -m evaljev.run --model laya
 HF_HUB_DISABLE_XET=1 uv run python -m evaljev.run --model "laya@head=512,len=1024"
+HF_HUB_DISABLE_XET=1 uv run python -m evaljev.run --model open-jev
 ```
 
-`--model` is `jev`, any OpenRouter model id, or `laya[:subfolder][@key=value,...]` where the keys override the checkpoint's config. `--reasoning` sets effort where the model supports it. `--cap` stops at that many dollars of OpenRouter spend; local models are free and never capped. Runs resume; delete `results/<task>/<model>.jsonl` to redo a pair.
+Any server speaking the System One contract is benchable by URL. For Kev, start its server and point at it:
+
+```bash
+git clone https://github.com/jaredpalmer/kev && cd kev && uv sync --extra serve
+KEV_DTYPE=bf16 uv run --extra serve python -m kev.serve --run jaredpalmer/kev-0.8b --port 8009
+KEV_URL=http://127.0.0.1:8009 uv run python -m evaljev.run --model kev
+```
+
+`--model` is `jev`, any OpenRouter model id, `laya[:subfolder][@key=value,...]`, `open-jev`, or `kev`. `--reasoning` sets effort where supported. `--cap` stops at that many dollars of OpenRouter spend; local models are free and never capped. Runs resume; delete `results/<task>/<model>.jsonl` to redo a pair.
 
 A task is up to three files in `data/`:
 
@@ -58,10 +78,11 @@ A task is up to three files in `data/`:
 
 ## Notes
 
-- Metrics are in `evaljev/metrics.py` and unit-tested in `tests/`. Confidence is the probability of the chosen label: the returned distribution for Jev and Laya, the stated number for Terra.
-- Latency is the wall-clock time of one successful call, same clock for every model; for local checkpoints that is the forward pass with the model already resident, measured after warm-up.
-- Cost is `input_tokens × $0.042/M` for Jev (output free), OpenRouter's billed `usage.cost` for API models, and zero for local ones.
-- Local models run one call at a time so the latency figure is uncontended; API models run 8 or 16 in flight.
-- Laya's checkpoint is 808 MB. The Hugging Face xet transfer path stalled at zero bytes on this machine; `HF_HUB_DISABLE_XET=1` uses the classic path.
-- Raw per-item records with request ids are in `results/<task>/<model>.jsonl`.
-- Caveats: the datasets are public and old; Terra's confidence is self-reported and clusters at 0.98 to 0.99; one run from one machine on one day; no prompt tuning; at n = 300 differences under about 5 points are noise; the Banking77 mirror has 3,076 test rows against 3,080 in the original.
+- Training data as each model's card lists it. open-jev: Banking77, SST-5, BoolQ. Kev: Banking77, SST-5, BoolQ, AG News, MultiNLI, Yelp. Laya: not listed. So `intent` and `sentiment5` are in-sample for two of the clones; `clinc` is out-of-sample for all, and `polarity` is in no card's list.
+- Metrics are in `evaljev/metrics.py` and unit-tested. Confidence is the probability of the chosen label: the returned distribution for Jev, Laya, open-jev and Kev, the stated number for Terra.
+- Latency is the wall-clock time of one successful call, same clock for every model. API models include the network; local models are the forward pass with the model resident, measured after warm-up. They are not the same quantity.
+- Cost is `input_tokens × $0.042/M` for Jev (output free), OpenRouter's billed `usage.cost` for API models, zero for local ones.
+- Local models run one call at a time so latency is uncontended; API models run 8 or 16 in flight.
+- Laya's checkpoint is 808 MB. The Hugging Face xet transfer stalled at zero bytes here; `HF_HUB_DISABLE_XET=1` uses the classic path.
+- Not benchable here: `Bespoke-Nimble-9B` requires a CUDA GPU and caps at 26 choices per field, so the 77- and 151-option tasks are impossible for it; DiffusionGemmaJev and Jevlike have no published weights.
+- Caveats: the datasets are public and old; Terra's confidence is self-reported; one run from one machine; no prompt tuning; at n = 300 differences under about 5 points are noise; the Banking77 mirror has 3,076 test rows against 3,080 in the original.

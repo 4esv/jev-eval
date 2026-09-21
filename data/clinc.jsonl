@@ -1,0 +1,300 @@
+{"id": "clinc-000", "text": "what's the best way to build a skyscraper", "label": "oos"}
+{"id": "clinc-001", "text": "can i increase the credit limit on my capital one card", "label": "credit_limit_change"}
+{"id": "clinc-002", "text": "how much flour do i need for a strawberry cake", "label": "ingredients_list"}
+{"id": "clinc-003", "text": "let's try and confirm my reservation for bubble bar under \"franklin", "label": "confirm_reservation"}
+{"id": "clinc-004", "text": "is it after noon", "label": "time"}
+{"id": "clinc-005", "text": "speak it again slowly", "label": "change_speed"}
+{"id": "clinc-006", "text": "i need to know what the point of life is", "label": "meaning_of_life"}
+{"id": "clinc-007", "text": "have i gone over my entertainment budget", "label": "spending_history"}
+{"id": "clinc-008", "text": "revert from whisper mode", "label": "whisper_mode"}
+{"id": "clinc-009", "text": "cancel my reservation for dinner this saturday", "label": "cancel_reservation"}
+{"id": "clinc-010", "text": "book a flight from new york to la for less than 200 dollars", "label": "book_flight"}
+{"id": "clinc-011", "text": "please tell me what amount i'm earning", "label": "income"}
+{"id": "clinc-012", "text": "is it safe to go to serbia", "label": "travel_alert"}
+{"id": "clinc-013", "text": "what should i do if i need to report my card lost", "label": "report_lost_card"}
+{"id": "clinc-014", "text": "my card became damaged when i dropped it in the parking lot and it got ran over", "label": "damaged_card"}
+{"id": "clinc-015", "text": "please give me the pin number for my checking account", "label": "pin_change"}
+{"id": "clinc-016", "text": "will you let me know my bank balance", "label": "balance"}
+{"id": "clinc-017", "text": "skip to the next track", "label": "next_song"}
+{"id": "clinc-018", "text": "i want this song on my pregame playlist", "label": "update_playlist"}
+{"id": "clinc-019", "text": "can you call alexa", "label": "make_call"}
+{"id": "clinc-020", "text": "what's the interest rate on my savings account", "label": "interest_rate"}
+{"id": "clinc-021", "text": "you can dusting off my todo list", "label": "todo_list_update"}
+{"id": "clinc-022", "text": "can i purchase a vacation using this", "label": "pto_request"}
+{"id": "clinc-023", "text": "please let's do it", "label": "yes"}
+{"id": "clinc-024", "text": "how do you convert kilos to pounds", "label": "measurement_conversion"}
+{"id": "clinc-025", "text": "let me know how to rollover my 401k", "label": "rollover_401k"}
+{"id": "clinc-026", "text": "at a minimum, what must i pay on my verizon bill", "label": "min_payment"}
+{"id": "clinc-027", "text": "tell my bank i'm in canada the entire week of the 6th to the 13th", "label": "travel_notification"}
+{"id": "clinc-028", "text": "what is the calorie content in french fries", "label": "calories"}
+{"id": "clinc-029", "text": "what's the status of by delta flight", "label": "flight_status"}
+{"id": "clinc-030", "text": "do you know how to spell, bourgeois", "label": "spelling"}
+{"id": "clinc-031", "text": "can you end the current process", "label": "cancel"}
+{"id": "clinc-032", "text": "what is the conversion of $30 in canadian dollars", "label": "exchange_rate"}
+{"id": "clinc-033", "text": "can we speak in german", "label": "change_language"}
+{"id": "clinc-034", "text": "tell me how to spent \"frightened", "label": "spelling"}
+{"id": "clinc-035", "text": "is \"cleaning the bathroom\" an item on my todo list", "label": "todo_list"}
+{"id": "clinc-036", "text": "when am i due for my next oil change", "label": "oil_change_when"}
+{"id": "clinc-037", "text": "hi, how are you", "label": "greeting"}
+{"id": "clinc-038", "text": "i need to know how to get my car jump started", "label": "jump_start"}
+{"id": "clinc-039", "text": "check: car gas mileage", "label": "mpg"}
+{"id": "clinc-040", "text": "do i need a visa to travel to indonesia", "label": "international_visa"}
+{"id": "clinc-041", "text": "play oldschool rap", "label": "play_music"}
+{"id": "clinc-042", "text": "i wanna know where the w2 is", "label": "w2"}
+{"id": "clinc-043", "text": "who employs you", "label": "who_do_you_work_for"}
+{"id": "clinc-044", "text": "can people safely travel to cambodia", "label": "travel_alert"}
+{"id": "clinc-045", "text": "i want to hear cool bee facts", "label": "fun_fact"}
+{"id": "clinc-046", "text": "i must know how to say thank you in german", "label": "translate"}
+{"id": "clinc-047", "text": "should i go to a car maintenance", "label": "schedule_maintenance"}
+{"id": "clinc-048", "text": "what does ferrari mean", "label": "definition"}
+{"id": "clinc-049", "text": "set the alarm now", "label": "alarm"}
+{"id": "clinc-050", "text": "when is my meeting with jim scheduled for", "label": "meeting_schedule"}
+{"id": "clinc-051", "text": "pay my utility bill from my bank account", "label": "pay_bill"}
+{"id": "clinc-052", "text": "can i call you arnold instead", "label": "change_ai_name"}
+{"id": "clinc-053", "text": "the list should also have 2 loaves of bread", "label": "shopping_list_update"}
+{"id": "clinc-054", "text": "what's the annual percentage rate for my credit card", "label": "apr"}
+{"id": "clinc-055", "text": "tell me what to call you", "label": "what_is_your_name"}
+{"id": "clinc-056", "text": "i need my dinner reservation canceled", "label": "cancel_reservation"}
+{"id": "clinc-057", "text": "what is the weather", "label": "weather"}
+{"id": "clinc-058", "text": "roll a die please", "label": "roll_dice"}
+{"id": "clinc-059", "text": "what holiday is next and when", "label": "next_holiday"}
+{"id": "clinc-060", "text": "make a reservation for 2 tonight at 7:00 at outback steakhouse", "label": "restaurant_reservation"}
+{"id": "clinc-061", "text": "i need to know what traffic is going to be like at 3:00 pm on the new jersey turnpike heading into camden from north jersey", "label": "traffic"}
+{"id": "clinc-062", "text": "what's your boss's name", "label": "who_do_you_work_for"}
+{"id": "clinc-063", "text": "take toilet paper off my shopping list and add paper towels", "label": "shopping_list_update"}
+{"id": "clinc-064", "text": "what's it take to get a mastercard", "label": "new_card"}
+{"id": "clinc-065", "text": "are you a person that's real", "label": "are_you_a_bot"}
+{"id": "clinc-066", "text": "what is the shipping status of my replacement card", "label": "replacement_card_duration"}
+{"id": "clinc-067", "text": "do i have a monthly spending limit", "label": "credit_limit"}
+{"id": "clinc-068", "text": "what do i do if i need my w2 for my my taxes", "label": "w2"}
+{"id": "clinc-069", "text": "can you help me locate my phone, please", "label": "find_phone"}
+{"id": "clinc-070", "text": "how many weeks ago was my car in the shop", "label": "last_maintenance"}
+{"id": "clinc-071", "text": "what amount of vacation days do i have", "label": "pto_balance"}
+{"id": "clinc-072", "text": "my car battery is dead what do i do", "label": "jump_start"}
+{"id": "clinc-073", "text": "please give me the nutritional information for an egg", "label": "nutrition_info"}
+{"id": "clinc-074", "text": "can you suggest a french restaurant", "label": "restaurant_suggestion"}
+{"id": "clinc-075", "text": "give me today's date", "label": "date"}
+{"id": "clinc-076", "text": "what's the word for trees in norway", "label": "translate"}
+{"id": "clinc-077", "text": "yup", "label": "yes"}
+{"id": "clinc-078", "text": "that is so false", "label": "no"}
+{"id": "clinc-079", "text": "what health coverage do i have", "label": "insurance"}
+{"id": "clinc-080", "text": "i need a reminder to wash dishes", "label": "reminder_update"}
+{"id": "clinc-081", "text": "what's the timezone now in hiram", "label": "timezone"}
+{"id": "clinc-082", "text": "how far has my application for the hsbc card gone till now", "label": "application_status"}
+{"id": "clinc-083", "text": "have an uber sent to take me to the courthouse", "label": "uber"}
+{"id": "clinc-084", "text": "i want to rename you joe", "label": "change_ai_name"}
+{"id": "clinc-085", "text": "what is 25% of $54,788", "label": "calculator"}
+{"id": "clinc-086", "text": "is it too late to upgrade to first class", "label": "oos"}
+{"id": "clinc-087", "text": "what raiting of gas is called for", "label": "gas_type"}
+{"id": "clinc-088", "text": "text katy and tell her i love her", "label": "text"}
+{"id": "clinc-089", "text": "how long should i boil eggs", "label": "cook_time"}
+{"id": "clinc-090", "text": "flip the coin, i choose heads", "label": "flip_coin"}
+{"id": "clinc-091", "text": "i'm travelling to boston on march 2 until march 4 please make a hotel reservation for me", "label": "book_hotel"}
+{"id": "clinc-092", "text": "is garlic on my grocery list", "label": "shopping_list"}
+{"id": "clinc-093", "text": "what is the carry-on policy for flights on panam", "label": "carry_on"}
+{"id": "clinc-094", "text": "i want to hear my name", "label": "user_name"}
+{"id": "clinc-095", "text": "i need your to reset to factory settings", "label": "reset_settings"}
+{"id": "clinc-096", "text": "why won't you let me pay with my credit card", "label": "card_declined"}
+{"id": "clinc-097", "text": "does olive garden have good reviews", "label": "restaurant_reviews"}
+{"id": "clinc-098", "text": "how old will you be", "label": "how_old_are_you"}
+{"id": "clinc-099", "text": "i need you to switch the language you are responding as i don't understand", "label": "change_language"}
+{"id": "clinc-100", "text": "who assembled you", "label": "who_made_you"}
+{"id": "clinc-101", "text": "i need to know how you are doing today", "label": "greeting"}
+{"id": "clinc-102", "text": "please take off my calendar on saturday the 6th birthday party for john", "label": "calendar_update"}
+{"id": "clinc-103", "text": "change voice speed", "label": "change_speed"}
+{"id": "clinc-104", "text": "can you get me an uber to disney world", "label": "uber"}
+{"id": "clinc-105", "text": "if i travel abroad, do i need vaccinations", "label": "vaccines"}
+{"id": "clinc-106", "text": "i'm in the mood for slow songs and nothing else", "label": "play_music"}
+{"id": "clinc-107", "text": "i like the female voice, switch please", "label": "change_accent"}
+{"id": "clinc-108", "text": "have i earned points with my venture card, and how many", "label": "rewards_balance"}
+{"id": "clinc-109", "text": "i have a fraudulent buy from dave's video on my account", "label": "report_fraud"}
+{"id": "clinc-110", "text": "can you order me some nacho chips", "label": "order"}
+{"id": "clinc-111", "text": "check my calendar for me, please", "label": "calendar"}
+{"id": "clinc-112", "text": "i am itching to travel but don't know where to go", "label": "travel_suggestion"}
+{"id": "clinc-113", "text": "go to whisper mode for one hour", "label": "whisper_mode"}
+{"id": "clinc-114", "text": "how soon should i get my tires changed", "label": "tire_change"}
+{"id": "clinc-115", "text": "what will i be paying for utilities this month", "label": "bill_balance"}
+{"id": "clinc-116", "text": "play the next song please", "label": "next_song"}
+{"id": "clinc-117", "text": "whats the mpg of this car", "label": "mpg"}
+{"id": "clinc-118", "text": "what is my to-do list like today", "label": "todo_list"}
+{"id": "clinc-119", "text": "is my credit score over 700 yet", "label": "credit_score"}
+{"id": "clinc-120", "text": "do i have a meeting with paul today", "label": "meeting_schedule"}
+{"id": "clinc-121", "text": "do i get charged extra for using my card in portland", "label": "international_fees"}
+{"id": "clinc-122", "text": "i'll be travelling to russia from april 1 through april 20 and need my financial institute apprised of it", "label": "travel_notification"}
+{"id": "clinc-123", "text": "send me more checkbooks please", "label": "order_checks"}
+{"id": "clinc-124", "text": "tell me how much i have been buying as of late", "label": "spending_history"}
+{"id": "clinc-125", "text": "does france use a socket converter", "label": "plug_type"}
+{"id": "clinc-126", "text": "is it okay to use butter instead of margarine", "label": "ingredient_substitution"}
+{"id": "clinc-127", "text": "can you repeat the question again", "label": "repeat"}
+{"id": "clinc-128", "text": "i need some directions to phoenix", "label": "directions"}
+{"id": "clinc-129", "text": "what's my map location", "label": "current_location"}
+{"id": "clinc-130", "text": "i wanna know how busy denny's is at 5 am", "label": "how_busy"}
+{"id": "clinc-131", "text": "i don't remember the pin number to my card", "label": "pin_change"}
+{"id": "clinc-132", "text": "tell me how long milk stays good in the fridge", "label": "food_last"}
+{"id": "clinc-133", "text": "turn to volume 4", "label": "change_volume"}
+{"id": "clinc-134", "text": "i lost my phone can you help me", "label": "find_phone"}
+{"id": "clinc-135", "text": "scan you find me a chicken recipe", "label": "recipe"}
+{"id": "clinc-136", "text": "tell me what this song is called that's playing", "label": "what_song"}
+{"id": "clinc-137", "text": "can you let michael and julie know my location", "label": "share_location"}
+{"id": "clinc-138", "text": "i need a good meal idea from italy", "label": "meal_suggestion"}
+{"id": "clinc-139", "text": "i need to know the calorie content of spaghetti", "label": "calories"}
+{"id": "clinc-140", "text": "i wanna find a hotel with good reviews in phoenix", "label": "book_hotel"}
+{"id": "clinc-141", "text": "how long does it take to make mashed potatoes", "label": "cook_time"}
+{"id": "clinc-142", "text": "please put my account on hold", "label": "freeze_account"}
+{"id": "clinc-143", "text": "i need to know the type of gas for this car", "label": "gas_type"}
+{"id": "clinc-144", "text": "what's the weather like today", "label": "weather"}
+{"id": "clinc-145", "text": "i would like to know some of your hobbies", "label": "what_are_your_hobbies"}
+{"id": "clinc-146", "text": "do americans need visas in canada", "label": "international_visa"}
+{"id": "clinc-147", "text": "so far how much pto have i used", "label": "pto_used"}
+{"id": "clinc-148", "text": "find out what song is currently on the speakers", "label": "what_song"}
+{"id": "clinc-149", "text": "give me a fun fact about koala", "label": "fun_fact"}
+{"id": "clinc-150", "text": "what is the price of my state taxes that i owe", "label": "taxes"}
+{"id": "clinc-151", "text": "how can i claim my rewards for my visa card", "label": "redeem_rewards"}
+{"id": "clinc-152", "text": "what is the carry-on policy for flights on the airline called jetblue", "label": "carry_on"}
+{"id": "clinc-153", "text": "what is my credit limit on my discover", "label": "credit_limit"}
+{"id": "clinc-154", "text": "what were you supposed to remind me of", "label": "reminder"}
+{"id": "clinc-155", "text": "call me shane", "label": "change_user_name"}
+{"id": "clinc-156", "text": "what traffic can i expect on the way to the newark, new jersey from philadelphia", "label": "traffic"}
+{"id": "clinc-157", "text": "please help me to know what type of things you can help me with", "label": "what_can_i_ask_you"}
+{"id": "clinc-158", "text": "how much time is left until we get there", "label": "distance"}
+{"id": "clinc-159", "text": "please text john", "label": "text"}
+{"id": "clinc-160", "text": "has my mastercard application gone through yet", "label": "application_status"}
+{"id": "clinc-161", "text": "i could use a laugh, got any jokes", "label": "tell_joke"}
+{"id": "clinc-162", "text": "tell me the expiration date on my credit card", "label": "expiration_date"}
+{"id": "clinc-163", "text": "i would like to set a reminder to bring the plants in tonight", "label": "reminder_update"}
+{"id": "clinc-164", "text": "what is the average of 54, 23, 43, 12, and 442", "label": "calculator"}
+{"id": "clinc-165", "text": "not sure", "label": "maybe"}
+{"id": "clinc-166", "text": "what day can i expect to receive payment on", "label": "payday"}
+{"id": "clinc-167", "text": "can you flip a coin for me", "label": "flip_coin"}
+{"id": "clinc-168", "text": "is it possible to use baking soda instead of flour", "label": "ingredient_substitution"}
+{"id": "clinc-169", "text": "can you check if meeting rooms are available between 4 and 5", "label": "schedule_meeting"}
+{"id": "clinc-170", "text": "i need buy a birthday gift for sue taken off my calendar  it is on monday or tuesday last week", "label": "calendar_update"}
+{"id": "clinc-171", "text": "how long until i get my replacement card", "label": "replacement_card_duration"}
+{"id": "clinc-172", "text": "what sorts of activities should i get up to while i am in dublin", "label": "travel_suggestion"}
+{"id": "clinc-173", "text": "can you book a meeting room for friday at 9:00 am", "label": "schedule_meeting"}
+{"id": "clinc-174", "text": "can you suggest a thai restaurant", "label": "restaurant_suggestion"}
+{"id": "clinc-175", "text": "tell me my water bill please", "label": "bill_balance"}
+{"id": "clinc-176", "text": "set a 5 minute timer", "label": "timer"}
+{"id": "clinc-177", "text": "i want to report a damaged card", "label": "damaged_card"}
+{"id": "clinc-178", "text": "when is my electricity due date", "label": "bill_due"}
+{"id": "clinc-179", "text": "on what day is our next day off", "label": "next_holiday"}
+{"id": "clinc-180", "text": "how does measurement slugs convert to measurement lb", "label": "measurement_conversion"}
+{"id": "clinc-181", "text": "can i redeem my points on gas", "label": "redeem_rewards"}
+{"id": "clinc-182", "text": "please transfer $5000 to money market from checking account", "label": "transfer"}
+{"id": "clinc-183", "text": "any update on my vacation", "label": "pto_request_status"}
+{"id": "clinc-184", "text": "for my savings account i would like to know the interest rate", "label": "interest_rate"}
+{"id": "clinc-185", "text": "what kind of hobbies does the ai have", "label": "what_are_your_hobbies"}
+{"id": "clinc-186", "text": "is it ok if i use some of my pto on may 24th to may 29th", "label": "pto_request"}
+{"id": "clinc-187", "text": "how many points do i have on my visa", "label": "rewards_balance"}
+{"id": "clinc-188", "text": "where should i look for my credit card expiration day", "label": "expiration_date"}
+{"id": "clinc-189", "text": "what if i want to switch insurance plans", "label": "insurance_change"}
+{"id": "clinc-190", "text": "thank you for your assistance", "label": "thank_you"}
+{"id": "clinc-191", "text": "what are the steps to change my insurance policy", "label": "insurance_change"}
+{"id": "clinc-192", "text": "when can i expect to be paid", "label": "payday"}
+{"id": "clinc-193", "text": "would you let me know what the meaning is life is", "label": "meaning_of_life"}
+{"id": "clinc-194", "text": "tell me mr joes pizza average wait time", "label": "how_busy"}
+{"id": "clinc-195", "text": "please roll twelve sided dice", "label": "roll_dice"}
+{"id": "clinc-196", "text": "5 people are going to be at tropicana by 8pm, reserve the table under martins name please", "label": "restaurant_reservation"}
+{"id": "clinc-197", "text": "does applebees do reservations", "label": "accept_reservations"}
+{"id": "clinc-198", "text": "there's a false charge on my account from mcdonald's", "label": "report_fraud"}
+{"id": "clinc-199", "text": "what do i have in my bank accounts right now", "label": "balance"}
+{"id": "clinc-200", "text": "thank you for that reply", "label": "thank_you"}
+{"id": "clinc-201", "text": "so how many days did i take off", "label": "pto_used"}
+{"id": "clinc-202", "text": "i have to make a phone call", "label": "make_call"}
+{"id": "clinc-203", "text": "how do i find out my tire pressure", "label": "tire_pressure"}
+{"id": "clinc-204", "text": "pull up the map and show my location", "label": "current_location"}
+{"id": "clinc-205", "text": "i want a step by step explanation of how to change the oil in my car", "label": "oil_change_how"}
+{"id": "clinc-206", "text": "what is the minimum i can pay on my insurance bill", "label": "min_payment"}
+{"id": "clinc-207", "text": "i'm afraid i don't know how to answer that", "label": "maybe"}
+{"id": "clinc-208", "text": "am i okay to take those vacation days", "label": "pto_request_status"}
+{"id": "clinc-209", "text": "can you call me a different name", "label": "change_user_name"}
+{"id": "clinc-210", "text": "do you prefer cats or dogs", "label": "do_you_have_pets"}
+{"id": "clinc-211", "text": "how much have i spent on my debit card this month", "label": "transactions"}
+{"id": "clinc-212", "text": "plug used in china", "label": "plug_type"}
+{"id": "clinc-213", "text": "i want to know my reminders", "label": "reminder"}
+{"id": "clinc-214", "text": "my luggage has been misplaced", "label": "lost_luggage"}
+{"id": "clinc-215", "text": "how many places in dallas can i rent a car", "label": "car_rental"}
+{"id": "clinc-216", "text": "i'd like to set up direct deposit", "label": "direct_deposit"}
+{"id": "clinc-217", "text": "what's the status of my jetblue flight", "label": "flight_status"}
+{"id": "clinc-218", "text": "when is my car due for an tire change", "label": "tire_change"}
+{"id": "clinc-219", "text": "how can i get my credit limit to be increased to $1000", "label": "credit_limit_change"}
+{"id": "clinc-220", "text": "i would like to hear something funny", "label": "tell_joke"}
+{"id": "clinc-221", "text": "bye bye then", "label": "goodbye"}
+{"id": "clinc-222", "text": "how old are you turning", "label": "how_old_are_you"}
+{"id": "clinc-223", "text": "what caused a hold on my us bank account", "label": "account_blocked"}
+{"id": "clinc-224", "text": "you have what types or kinds of pets", "label": "do_you_have_pets"}
+{"id": "clinc-225", "text": "how do i unlock my bank account", "label": "account_blocked"}
+{"id": "clinc-226", "text": "will we have to make reservations for roca", "label": "accept_reservations"}
+{"id": "clinc-227", "text": "what have i spent things on", "label": "transactions"}
+{"id": "clinc-228", "text": "great talk, thanks", "label": "goodbye"}
+{"id": "clinc-229", "text": "what is the routing number of my checking account at first national bankj", "label": "routing"}
+{"id": "clinc-230", "text": "can you find what my credit score is", "label": "credit_score"}
+{"id": "clinc-231", "text": "would you change your voice to the male british accent for me", "label": "change_accent"}
+{"id": "clinc-232", "text": "how many dollars is 20 yen worth", "label": "exchange_rate"}
+{"id": "clinc-233", "text": "include rap god on the motivational playlist", "label": "update_playlist"}
+{"id": "clinc-234", "text": "disconnect from my device please", "label": "sync_device"}
+{"id": "clinc-235", "text": "where are you from originally", "label": "where_are_you_from"}
+{"id": "clinc-236", "text": "tell me my current health plan", "label": "insurance"}
+{"id": "clinc-237", "text": "i need the nutrition facts for ramen", "label": "nutrition_info"}
+{"id": "clinc-238", "text": "tell me the timezone for california", "label": "timezone"}
+{"id": "clinc-239", "text": "block my american saving bank for now", "label": "freeze_account"}
+{"id": "clinc-240", "text": "can you return to the factory fresh settings", "label": "reset_settings"}
+{"id": "clinc-241", "text": "what do you call me", "label": "user_name"}
+{"id": "clinc-242", "text": "i need to rent a car for may 11thto may 13th in chicago and i'd like a coupe", "label": "car_rental"}
+{"id": "clinc-243", "text": "how many more miles can i drive on my current tank", "label": "gas"}
+{"id": "clinc-244", "text": "that was a mistake, undo that", "label": "cancel"}
+{"id": "clinc-245", "text": "how many vacation days do i still have available", "label": "pto_balance"}
+{"id": "clinc-246", "text": "i'd say no", "label": "no"}
+{"id": "clinc-247", "text": "i need a recipe for chili", "label": "recipe"}
+{"id": "clinc-248", "text": "should i have my shots up to date before i travel to the virgin islands", "label": "vaccines"}
+{"id": "clinc-249", "text": "how do i order more checkbooks for my well's fargo account", "label": "order_checks"}
+{"id": "clinc-250", "text": "i need the data and price from my state taxes", "label": "taxes"}
+{"id": "clinc-251", "text": "can you tell me the current time in jamaica", "label": "time"}
+{"id": "clinc-252", "text": "what will i make this year", "label": "income"}
+{"id": "clinc-253", "text": "how can i rehabilitate my poor credit score", "label": "improve_credit_score"}
+{"id": "clinc-254", "text": "how long does chicken curry last in the freezer before it's spoiled", "label": "food_last"}
+{"id": "clinc-255", "text": "what's the definition of remunerative", "label": "definition"}
+{"id": "clinc-256", "text": "can you please instruct me on the proper way to change the oil in my car", "label": "oil_change_how"}
+{"id": "clinc-257", "text": "tell me where my package is currently", "label": "order_status"}
+{"id": "clinc-258", "text": "turn the oven to 350", "label": "smart_home"}
+{"id": "clinc-259", "text": "where is my order now", "label": "order_status"}
+{"id": "clinc-260", "text": "if i'm in portland can i still use my card without getting charged extra", "label": "international_fees"}
+{"id": "clinc-261", "text": "a hidden government facility", "label": "where_are_you_from"}
+{"id": "clinc-262", "text": "i need to book a flight on jet blue to boston from new york", "label": "book_flight"}
+{"id": "clinc-263", "text": "order all items on my shopping list", "label": "order"}
+{"id": "clinc-264", "text": "how do i apply for american express", "label": "new_card"}
+{"id": "clinc-265", "text": "tell me where i can find my exterminator bill's due date", "label": "bill_due"}
+{"id": "clinc-266", "text": "what are people saying about chick-fil-a's chicken nuggets", "label": "restaurant_reviews"}
+{"id": "clinc-267", "text": "tell me the date, please", "label": "date"}
+{"id": "clinc-268", "text": "sorry, i didn't catch that could you say it again", "label": "repeat"}
+{"id": "clinc-269", "text": "i would like to know what type of things you can help me with", "label": "what_can_i_ask_you"}
+{"id": "clinc-270", "text": "i need to put in a payment towards my phone bill", "label": "pay_bill"}
+{"id": "clinc-271", "text": "what kind of indian would you recommend", "label": "meal_suggestion"}
+{"id": "clinc-272", "text": "i will rollover my 401k", "label": "rollover_401k"}
+{"id": "clinc-273", "text": "what's my oil change status", "label": "oil_change_when"}
+{"id": "clinc-274", "text": "activate direct deposit to chase account", "label": "direct_deposit"}
+{"id": "clinc-275", "text": "i would love to know the closest gas station to glendale", "label": "directions"}
+{"id": "clinc-276", "text": "what's on my purchase list", "label": "shopping_list"}
+{"id": "clinc-277", "text": "can you set an alarm", "label": "alarm"}
+{"id": "clinc-278", "text": "is my card's apr a decent rate", "label": "apr"}
+{"id": "clinc-279", "text": "have i gotten around to adding the bike ride to my calendar yet", "label": "calendar"}
+{"id": "clinc-280", "text": "i lost all my stuff that i had packed", "label": "lost_luggage"}
+{"id": "clinc-281", "text": "find my reservation for steve at crucere's and confirm it, please", "label": "confirm_reservation"}
+{"id": "clinc-282", "text": "i was trying to use my card to get food at publix but it got declined", "label": "card_declined"}
+{"id": "clinc-283", "text": "how many minutes am i from texaco", "label": "distance"}
+{"id": "clinc-284", "text": "i would like to distribute some money between my accounts", "label": "transfer"}
+{"id": "clinc-285", "text": "adjust volume setting to 4", "label": "change_volume"}
+{"id": "clinc-286", "text": "what ingredients are in tacos", "label": "ingredients_list"}
+{"id": "clinc-287", "text": "how is the temperature at ac", "label": "smart_home"}
+{"id": "clinc-288", "text": "my tires are how low on air", "label": "tire_pressure"}
+{"id": "clinc-289", "text": "what company made this ai", "label": "who_made_you"}
+{"id": "clinc-290", "text": "please help me report my lost card", "label": "report_lost_card"}
+{"id": "clinc-291", "text": "please send my location to rob and mary", "label": "share_location"}
+{"id": "clinc-292", "text": "i no longer want you to be synced to my phone", "label": "sync_device"}
+{"id": "clinc-293", "text": "how long has it been since i last took my car to the shop", "label": "last_maintenance"}
+{"id": "clinc-294", "text": "set a 2 minute timer", "label": "timer"}
+{"id": "clinc-295", "text": "let me know if you are a human or are a computer", "label": "are_you_a_bot"}
+{"id": "clinc-296", "text": "how much gas do i have left in my tank", "label": "gas"}
+{"id": "clinc-297", "text": "can you see if i can make an appointment to have my oil changed", "label": "schedule_maintenance"}
+{"id": "clinc-298", "text": "where do i go if i am seeking the routing number of dallas capital", "label": "routing"}
+{"id": "clinc-299", "text": "take tennis practice off my to do list", "label": "todo_list_update"}

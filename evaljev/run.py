@@ -31,10 +31,10 @@ def read(path: Path) -> list[dict]:
 def spent(model: str) -> float:
     """Recorded spend across every results file. Jev is capped alone; OpenRouter models share one cap.
     Local models are free and excluded, so a past API run cannot abort them."""
-    if model.startswith("laya"):
+    if model.startswith(("laya", "open-jev", "kev")):
         return 0.0
     files = RESULTS.glob("*/jev*.jsonl") if model == "jev" else (
-        p for p in RESULTS.glob("*/*.jsonl") if not p.name.startswith(("jev", "laya")))
+        p for p in RESULTS.glob("*/*.jsonl") if not p.name.startswith(("jev", "laya", "open-jev", "kev")))
     return sum(r.get("cost_usd") or 0 for p in files for r in read(p))
 
 
@@ -50,7 +50,7 @@ async def run(task: str, model: str, effort: str | None, n: int, tag: str, cap: 
     if not todo:
         return
 
-    local = model.startswith("laya")
+    local = model.startswith(("laya", "open-jev", "kev"))
     sem = asyncio.Semaphore(1 if local else CONCURRENCY if model == "jev" else OR_CONCURRENCY)
     lock = asyncio.Lock()
     stop = asyncio.Event()
