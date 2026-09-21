@@ -1,28 +1,28 @@
 # jev-eval
 
-Benchmark [TypeSafe Jev](https://typesafe.ai) against any OpenRouter model on labelled classification data: accuracy, calibration, latency, cost, determinism. Runs on your own data or the three public tasks included; the results below are those three against GPT-5.6 Terra.
+Benchmark [TypeSafe Jev](https://typesafe.ai) against any OpenRouter model or a local checkpoint on labelled classification data: accuracy, calibration, confidence distribution, latency, cost. Ships four tasks; the results below are those tasks against GPT-5.6 Terra and [Laya](https://huggingface.co/convaiinnovations/laya).
 
 ## Results
 
-300 items per task, run 2026-09-17 with `jev-1.13.0` and `openai/gpt-5.6-terra` via OpenRouter.
+300 items per task, run 2026-09-17 and 2026-09-21. `jev-1.13.0`, `openai/gpt-5.6-terra` via OpenRouter, `convaiinnovations/laya` (421M, Apache 2.0) local on an M-series GPU.
 
-| | intent (77 classes) | sentiment (5 levels) | positive/negative |
-|---|---|---|---|
-| Accuracy, Jev / Terra | 0.78 / 0.85 | 0.57 / 0.59 | 0.97 / 0.97 |
-| Gap beyond noise (95% CI) | borderline | no | no |
-| Calibration error (ECE), Jev / Terra | 0.11 / 0.08 | 0.20 / 0.30 | 0.04 / 0.02 |
-| Median latency, Jev / Terra | 0.20 s / 1.04 s | 0.19 s / 1.06 s | 0.20 s / 1.04 s |
-| Cost per 1k calls, Jev / Terra | $0.04 / $2.02 | $0.01 / $0.64 | $0.02 / $0.85 |
+| | intent (77 classes) | sentiment (5 levels) | polarity as `noul` | polarity as `choice` |
+|---|---|---|---|---|
+| **Accuracy** Jev / Laya / Terra | 0.780 / 0.370 / **0.847** | 0.570 / 0.310 / **0.593** | **0.970** / 0.507 / **0.970** | **0.967** / 0.947 / — |
+| **ECE** (lower better) Jev / Laya / Terra | 0.110 / 0.520 / **0.081** | **0.200** / 0.317 / 0.303 | 0.042 / 0.496 / **0.020** | 0.022 / **0.020** / — |
+| **AUROC** of confidence Jev / Laya / Terra | **0.831** / 0.696 / 0.807 | 0.611 / **0.711** / 0.636 | 0.935 / 0.897 / **0.964** | **0.909** / 0.885 / — |
+| **p50 latency** Jev / Laya / Terra | 0.20 s / **0.10 s** / 1.04 s | 0.19 s / **0.04 s** / 1.06 s | 0.20 s / **0.08 s** / 1.04 s | 0.18 s / **0.08 s** / — |
+| **Cost per 1k** Jev / Laya / Terra | $0.040 / **$0** / $2.02 | $0.014 / **$0** / $0.64 | $0.021 / **$0** / $0.85 | $0.021 / **$0** / — |
 
-- Speed 5x, cost 41–50x per call. Advertised: 193x and 444x.
-- Jev counts about twice the input tokens for the same text (340 vs 162 on identical sentences).
-- Accuracy equal on the two easy tasks; 6.7 points lower on 77-way routing.
-- Calibration better than Terra's on one task, worse on two. AUROC of confidence against correctness: 0.83 / 0.61 / 0.94 (Jev), 0.81 / 0.64 / 0.96 (Terra).
-- Not deterministic: identical inputs changed the label on 1.7% (intent) and 3.3% (sentiment) of items.
-- "Zero hallucinations" means every answer is a listed option. True for all 1,800 Jev calls; also true for all 1,800 Terra calls under a strict JSON schema.
-- Terra with `reasoning.effort = "medium"` used 4–17 reasoning tokens on these inputs, answered in about 1 s, and was not more accurate.
+- **Laya is 2–5x faster than Jev here and free**, but the two numbers are not the same quantity: Laya is local compute, Jev and Terra include the network round trip. Laya's latency scales with option count, not just question count: 0.04 s at 5 levels, 0.08 s at 2 options, 0.10 s at 77.
+- **Laya's `noul` collapses on this data.** It returns 0.0 on 298 of 300 reviews and scores 0.507, chance on a balanced binary task, with 99% of answers at 0.99 confidence or above. The same model, same 300 reviews, asked as a 2-option `choice`, scores 0.947. Jev scores 0.970 and 0.967 on the two framings. The collapse is unchanged by dropping `criteria` or by raising the context budget.
+- **Laya ships over-confident**, as its card states: raw ECE 0.32 to 0.52 here, against the 0.466 it reports pre-temperature. Its published 0.081 is after fitting a temperature per question type and option count; these numbers are as-shipped.
+- **High-cardinality choice is Jev's.** Raising `head_max_len` from 192 to 512, which Laya's card recommends for 50+ options, lifts intent from 0.370 to 0.463 and leaves the other tasks unchanged. Jev scores 0.780.
+- **Where Laya works, its confidence is the less saturated.** On polarity as `choice`, 33% of its answers sit at 0.99 or above against Jev's 89%, at the same ECE. On 5-level sentiment its AUROC beats Jev's, 0.711 against 0.611: it ranks its own errors better while being 26 points less accurate.
 
-Full tables, threshold coverage and the reasoning run: [`results/summary.md`](results/summary.md).
+Full tables, confidence distributions and reliability diagrams: [`results/summary.md`](results/summary.md).
+
+![confidence](results/confidence.png)
 
 ## Run
 
@@ -32,53 +32,36 @@ uv sync
 uv run python -m evaljev.run --model jev
 uv run python -m evaljev.run --model openai/gpt-5.6-terra
 uv run python -m evaljev.run --model openai/gpt-5.6-terra --reasoning medium
-uv run python -m evaljev.run --model jev --tag rerun
+uv run python -m evaljev.run --model jev --tag rerun     # determinism check
 uv run python -m evaljev.report
 uv run pytest
 ```
 
-Your own task is two files in `data/`:
-
-```
-data/tickets.jsonl        {"id": "t1", "text": "App crashes when I open settings", "label": "bug"}
-data/tickets.task.json    {"kind": "choice", "instructions": "What kind of support ticket is this?"}
-```
+Local checkpoints need the extra, and one call per task with `--model laya`:
 
 ```bash
-uv run python -m evaljev.run --task tickets --model jev
-uv run python -m evaljev.run --task tickets --model openai/gpt-5.6-terra
-uv run python -m evaljev.report
+uv sync --extra laya
+HF_HUB_DISABLE_XET=1 uv run python -m evaljev.run --model laya
+HF_HUB_DISABLE_XET=1 uv run python -m evaljev.run --model "laya@head=512,len=1024"
 ```
 
-| flag | default | |
-|---|---|---|
-| `--model` | required | `jev` or any OpenRouter model id. |
-| `--task` | `all` | A task name from `data/`. |
-| `--n` | 300 | Run the first n rows. |
-| `--reasoning` | off | `low`, `medium` or `high`, where the model supports it. |
-| `--tag` | none | Writes a separate file. `rerun` adds a determinism line to the report. |
-| `--cap` | 10 | Stops when recorded spend in `results/` reaches this many dollars. Jev has its own total; OpenRouter models share one. |
+`--model` is `jev`, any OpenRouter model id, or `laya[:subfolder][@key=value,...]` where the keys override the checkpoint's config. `--reasoning` sets effort where the model supports it. `--cap` stops at that many dollars of OpenRouter spend; local models are free and never capped. Runs resume; delete `results/<task>/<model>.jsonl` to redo a pair.
 
-| kind | Jev question | files |
-|---|---|---|
-| `choice` | One of the labels. | `labels.json` optional; defaults to the labels in the data. |
-| `score` | Ordered levels. The report adds ordinal MAE. | `data/<name>.labels.json` lists the levels low to high. |
-| `noul` | Yes or no, as a probability. | `labels.json` is `[no, yes]`; `task.json` adds `"criteria": {"true": "...", "false": "..."}`. |
+A task is up to three files in `data/`:
+
+```
+<name>.jsonl         {"id", "text", "label"} per line
+<name>.labels.json   the label list; for noul [no, yes]; optional for choice
+<name>.task.json     {"kind": "choice"|"score"|"noul", "instructions": ..., "criteria": ... (noul),
+                      "data": "<other task>" to reuse its items instead of copying them}
+```
 
 ## Notes
 
-| task | data | Jev question | Terra output |
-|---|---|---|---|
-| `intent` | Banking77 test (`mteb/banking77`), 3–4 per class | `choice`, 77 options | JSON `{label, confidence}` |
-| `sentiment5` | SST-5 test (`SetFit/sst5`), 60 per level | `score`, 5 ordered levels | JSON `{label, confidence}` |
-| `polarity` | IMDB test, reviews ≤ 300 words, 150 per class | `noul` | JSON `{label, confidence}` |
-
-- Samples are seeded and stratified (`evaljev/data.py`) and committed in `data/`. Rebuild them with `uv run --group build python -m evaljev.data`.
-- Runs resume; delete `results/<task>/<model>.jsonl` to redo a pair. A task is validated before any call is made. Each report section lists the models that have results for that task.
-- The Terra runs cost $2.10 on OpenRouter and $0.045 on Jev.
-- Both models get the same instruction and option names. Terra's `label` is a schema enum.
-- Confidence is the probability of the chosen label: Jev's returned distribution; Terra's stated number.
-- Latency is the wall-clock time of the successful HTTP request, same clock for both.
-- Cost: Jev `input_tokens × $0.042/M`, output free; Terra as billed by OpenRouter.
-- Raw records with request ids: `results/<task>/<model>.jsonl`. Metrics: `evaljev/metrics.py`, tested in `tests/`.
-- Caveats: the datasets are public and old; Terra's confidence is self-reported and clusters at 0.98–0.99; one run from one machine on one day; no prompt tuning; at n = 300, differences under about 5 points are noise; the Banking77 mirror has 3,076 test rows against 3,080 in the original.
+- Metrics are in `evaljev/metrics.py` and unit-tested in `tests/`. Confidence is the probability of the chosen label: the returned distribution for Jev and Laya, the stated number for Terra.
+- Latency is the wall-clock time of one successful call, same clock for every model; for local checkpoints that is the forward pass with the model already resident, measured after warm-up.
+- Cost is `input_tokens × $0.042/M` for Jev (output free), OpenRouter's billed `usage.cost` for API models, and zero for local ones.
+- Local models run one call at a time so the latency figure is uncontended; API models run 8 or 16 in flight.
+- Laya's checkpoint is 808 MB. The Hugging Face xet transfer path stalled at zero bytes on this machine; `HF_HUB_DISABLE_XET=1` uses the classic path.
+- Raw per-item records with request ids are in `results/<task>/<model>.jsonl`.
+- Caveats: the datasets are public and old; Terra's confidence is self-reported and clusters at 0.98 to 0.99; one run from one machine on one day; no prompt tuning; at n = 300 differences under about 5 points are noise; the Banking77 mirror has 3,076 test rows against 3,080 in the original.

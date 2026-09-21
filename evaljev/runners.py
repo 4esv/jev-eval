@@ -1,6 +1,7 @@
-"""One call per item to Jev (TypeSafe) or any OpenRouter model, normalized to one record shape.
+"""One call per item to Jev (TypeSafe), any OpenRouter model, or a local Laya checkpoint.
 
-Both runners time only the successful HTTP round trip with the same clock, so latency is comparable.
+API runners time the successful HTTP round trip; the Laya runner times the forward pass. Both use the
+same clock, but they are not the same quantity: one includes the network, the other is local compute.
 """
 
 import asyncio
@@ -17,6 +18,10 @@ JEV_MODEL = "jev-latest"
 JEV_USD_PER_INPUT_TOKEN = 0.042 / 1e6  # output tokens are free
 
 OR_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+LAYA_REPO = "convaiinnovations/laya"
+_LAYA_CFG = {"head": "head_max_len", "len": "max_len"}  # short names accepted in a model spec
+_laya_agents: dict[str, object] = {}
 
 def task_spec(task: str) -> dict:
     """data/<task>.task.json: {"kind": "choice"|"score"|"noul", "instructions": "...", "criteria": {...} (noul only)}."""
@@ -175,10 +180,55 @@ async def openrouter(client: httpx.AsyncClient, task: str, names: list[str], ite
     }
 
 
+def laya_agent(spec: str):
+    """Load and cache a Laya checkpoint. Spec: laya | laya:multilingual | laya@head=512,len=1024."""
+    if spec not in _laya_agents:
+        import laya as laya_pkg  # optional extra: uv sync --extra laya
+
+        base, _, overrides = spec.partition("@")
+        _, _, subfolder = base.partition(":")
+        agent = laya_pkg.load(LAYA_REPO, **({"subfolder": subfolder} if subfolder else {}))
+        for kv in filter(None, overrides.split(",")):
+            k, v = kv.split("=")
+            agent.cfg[_LAYA_CFG.get(k, k)] = int(v)
+        _laya_agents[spec] = agent
+    return _laya_agents[spec]
+
+
+async def laya(client: httpx.AsyncClient, task: str, names: list[str], item: dict, spec: str) -> dict:
+    """Local forward pass. Same question schema as Jev, so jev_question/jev_parse are reused."""
+    agent = laya_agent(spec)
+    body = {"q": jev_question(task, names)}
+    t0 = time.perf_counter()
+    data = await asyncio.to_thread(agent.predict, item["text"], body)
+    latency = time.perf_counter() - t0
+    ans = data["answers"]["q"]
+    pred, probs, conf = jev_parse(task, names, ans)
+    usage = data.get("usage", {})
+    return {
+        "model_version": spec,
+        "pred": pred,
+        "probs": probs,
+        "conf": max(probs.values()),
+        "ts_confidence": ans.get("confidence"),
+        "latency_s": latency,
+        "attempts": 1,
+        "in_tok": usage.get("input_tokens"),
+        "out_tok": usage.get("output_tokens"),
+        "cost_usd": 0.0,  # self-hosted
+        "request_id": "",
+        "raw": ans,
+    }
+
+
 def runner(model: str, effort: str | None):
-    """'jev' -> TypeSafe; anything else -> that OpenRouter model id."""
+    """'jev' -> TypeSafe; 'laya...' -> a local checkpoint; anything else -> that OpenRouter model id."""
     if model == "jev":
         return jev
+    if model == "laya" or model.startswith(("laya:", "laya@")):
+        async def run_laya(client, task, names, item):
+            return await laya(client, task, names, item, model)
+        return run_laya
 
     async def run(client, task, names, item):
         return await openrouter(client, task, names, item, model, effort)
@@ -186,4 +236,8 @@ def runner(model: str, effort: str | None):
 
 
 def slug(model: str, effort: str | None) -> str:
-    return model.replace("/", "__") + (f"+{effort}" if effort else "")
+    """Filename-safe name for a model spec: openai/x -> openai__x, laya@head=512,len=1024 -> laya-head512-len1024."""
+    s = model.replace("/", "__").replace(":", "-").replace("@", "-")
+    for ch in ("=", ","):
+        s = s.replace(ch, "-" if ch == "," else "")
+    return s + (f"+{effort}" if effort else "")

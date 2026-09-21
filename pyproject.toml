@@ -9,6 +9,13 @@ dependencies = [
     "matplotlib>=3.9",
 ]
 
+[project.optional-dependencies]
+laya = [
+    "laya>=0.3.4",
+    "torch>=2.0",
+    "transformers>=4.45",
+]
+
 [dependency-groups]
 dev = ["pytest>=8"]
 build = ["datasets>=3.0"]

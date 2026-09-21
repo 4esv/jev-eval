@@ -81,9 +81,17 @@ def tasks() -> list[str]:
 KINDS = ("choice", "score", "noul")
 
 
+def data_source(task: str) -> str:
+    """A task.json may set "data": "<other task>" to reuse its items and labels instead of duplicating them."""
+    spec = DATA / f"{task}.task.json"
+    return json.loads(spec.read_text()).get("data", task) if spec.exists() else task
+
+
 def load(task: str) -> tuple[list[dict], list[str]]:
     """Rows and label names, validated. labels.json is optional for `choice` (defaults to the labels in the data)."""
-    spec_path, rows_path, names_path = (DATA / f"{task}{ext}" for ext in (".task.json", ".jsonl", ".labels.json"))
+    src = data_source(task)
+    spec_path = DATA / f"{task}.task.json"
+    rows_path, names_path = DATA / f"{src}.jsonl", DATA / f"{src}.labels.json"
     for p in (spec_path, rows_path):
         if not p.exists():
             raise SystemExit(f"{task}: missing {p.relative_to(DATA.parent)}; tasks available: {', '.join(tasks())}")

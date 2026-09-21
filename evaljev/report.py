@@ -25,6 +25,9 @@ def models(task: str) -> list[str]:
 def label(m: str) -> str:
     if m == "jev":
         return "Jev"
+    if m.startswith("laya"):
+        _, _, tune = m.partition("-")
+        return "Laya" + (f" ({tune.replace('-', ', ')})" if tune else "")
     name, _, effort = m.partition("+")
     return name.replace("__", "/") + (f" (reasoning: {effort})" if effort else "")
 
@@ -63,6 +66,9 @@ def summarize(task: str, model: str, kind: str) -> dict:
         "in_tok": float(np.mean([r["in_tok"] for r in rs])),
         "selective": M.selective(conf, ok),
         "rel": M.reliability(conf, ok),
+        "conf_median": float(np.median(conf)),
+        "conf_min": float(np.min(conf)),
+        "conf_bands": [float(np.mean(np.array(conf) >= t)) for t in (0.5, 0.9, 0.99)],
         "_conf": conf,
         "_ok": ok,
     }
@@ -112,6 +118,20 @@ def plots(S: dict) -> None:
     fig.tight_layout()
     fig.savefig(RESULTS / "coverage.png", dpi=130)
 
+    fig, axes = plt.subplots(1, len(T), figsize=(4.4 * len(T), 4.2), squeeze=False)
+    axes = axes[0]
+    bins = np.linspace(0, 1, 21)
+    for ax, task in zip(axes, T):
+        for m in S[task]:
+            ax.hist(S[task][m]["_conf"], bins=bins, histtype="step", lw=1.6, color=COLOR[m], label=LABEL[m])
+            ax.axvline(S[task][m]["acc"], color=COLOR[m], ls=":", lw=1)
+        ax.set(title=task, xlabel="confidence (dotted line: accuracy)", xlim=(0, 1))
+    axes[0].set_ylabel("answers")
+    axes[0].legend(fontsize=8, loc="upper left")
+    fig.suptitle("Confidence distribution: mass to the right of a model's own dotted line is overconfidence", fontsize=11)
+    fig.tight_layout()
+    fig.savefig(RESULTS / "confidence.png", dpi=130)
+
 
 def main() -> None:
     # NOTE: a task section lists the models that have results for it; tasks with none are left out.
@@ -138,6 +158,12 @@ def main() -> None:
         if spec["kind"] == "score":
             L += ["", "Ordinal MAE (levels off, lower is better): " +
                   ", ".join(f"{LABEL[m]} {S[task][m]['mae']:.3f}" for m in here)]
+        L += ["", "Confidence distribution (median, lowest, and share of answers at or above each level):", "",
+              "| model | median | lowest | ≥0.5 | ≥0.9 | ≥0.99 |", "|---|---|---|---|---|---|"]
+        for m in S[task]:
+            s_ = S[task][m]
+            L.append(f"| {LABEL[m]} | {s_['conf_median']:.3f} | {s_['conf_min']:.3f} | "
+                     + " | ".join(f"{b:.0%}" for b in s_["conf_bands"]) + " |")
         L += ["", "Act only when confidence ≥ threshold (coverage / accuracy on covered):", "",
               "| model | " + " | ".join(f"≥{t}" for t in M.THRESHOLDS) + " |",
               "|---|" + "---|" * len(M.THRESHOLDS)]
@@ -150,8 +176,12 @@ def main() -> None:
                 if m == "jev":
                     continue
                 t = S[task][m]
-                L += ["", f"Jev vs {LABEL[m]}: {t['p50'] / j['p50']:.1f}x faster at p50, {t['usd_1k'] / j['usd_1k']:.0f}x cheaper "
-                          f"per call, mean input tokens {j['in_tok']:.0f} vs {t['in_tok']:.0f}."]
+                ratio = t["p50"] / j["p50"]
+                speed = (f"Jev is {ratio:.1f}x faster at p50" if ratio >= 1
+                         else f"{LABEL[m]} is {1 / ratio:.1f}x faster at p50")
+                cost = ("free to run, self-hosted" if t["usd_1k"] == 0
+                        else f"Jev is {t['usd_1k'] / j['usd_1k']:.0f}x cheaper per call")
+                L += ["", f"Jev vs {LABEL[m]}: {speed}; {cost}; mean input tokens {j['in_tok']:.0f} vs {t['in_tok']:.0f}."]
         for m in here:
             if (RESULTS / task / f"{m}~rerun.jsonl").exists():
                 same, drift = determinism(task, m)
@@ -161,7 +191,7 @@ def main() -> None:
     total = {m: sum(S[t][m]["usd_1k"] * S[t][m]["n"] / 1000 for t in TASKS if m in S[t]) for m in LABEL}
     L += ["## Spend (main result files)", ""]
     L += [f"- {LABEL[m]}: ${total[m]:.4f}" for m in LABEL]
-    L += ["", "![reliability](reliability.png)", "", "![coverage](coverage.png)", ""]
+    L += ["", "![confidence](confidence.png)", "", "![reliability](reliability.png)", "", "![coverage](coverage.png)", ""]
     (RESULTS / "summary.md").write_text("\n".join(L))
     plots(S)
     print("\n".join(L))

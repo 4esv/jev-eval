@@ -16,7 +16,7 @@ from evaljev.data import load, tasks
 from evaljev.runners import load_env, runner, slug
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
-CONCURRENCY = 16  # Jev; OpenRouter models use OR_CONCURRENCY
+CONCURRENCY = 16  # Jev; OpenRouter models use OR_CONCURRENCY, local models run one at a time
 OR_CONCURRENCY = 8
 
 
@@ -29,9 +29,12 @@ def read(path: Path) -> list[dict]:
 
 
 def spent(model: str) -> float:
-    """Recorded spend across every results file. Jev is capped alone; OpenRouter models share one cap."""
+    """Recorded spend across every results file. Jev is capped alone; OpenRouter models share one cap.
+    Local models are free and excluded, so a past API run cannot abort them."""
+    if model.startswith("laya"):
+        return 0.0
     files = RESULTS.glob("*/jev*.jsonl") if model == "jev" else (
-        p for p in RESULTS.glob("*/*.jsonl") if not p.name.startswith("jev"))
+        p for p in RESULTS.glob("*/*.jsonl") if not p.name.startswith(("jev", "laya")))
     return sum(r.get("cost_usd") or 0 for p in files for r in read(p))
 
 
@@ -47,7 +50,8 @@ async def run(task: str, model: str, effort: str | None, n: int, tag: str, cap: 
     if not todo:
         return
 
-    sem = asyncio.Semaphore(CONCURRENCY if model == "jev" else OR_CONCURRENCY)
+    local = model.startswith("laya")
+    sem = asyncio.Semaphore(1 if local else CONCURRENCY if model == "jev" else OR_CONCURRENCY)
     lock = asyncio.Lock()
     stop = asyncio.Event()
     fn = runner(model, effort)
