@@ -18,6 +18,12 @@ local = [
     "protobuf>=4",
 ]
 
+serve = [
+    "evaljev[local]",
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+]
+
 [dependency-groups]
 dev = ["pytest>=8"]
 build = ["datasets>=3.0"]

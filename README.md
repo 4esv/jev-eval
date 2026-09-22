@@ -65,6 +65,13 @@ KEV_DTYPE=bf16 uv run --extra serve python -m kev.serve --run jaredpalmer/kev-0.
 KEV_URL=http://127.0.0.1:8009 uv run python -m evaljev.run --model kev
 ```
 
+`evaljev.serve` does the reverse, putting a local checkpoint behind the same contract so any client that talks to TypeSafe can talk to it:
+
+```bash
+uv sync --extra serve
+HF_HUB_DISABLE_XET=1 uv run --extra serve python -m evaljev.serve --model laya --port 8010
+```
+
 `--model` is `jev`, any OpenRouter model id, `laya[:subfolder][@key=value,...]`, `open-jev`, or `kev`. `--reasoning` sets effort where supported. `--cap` stops at that many dollars of OpenRouter spend; local models are free and never capped. Runs resume; delete `results/<task>/<model>.jsonl` to redo a pair.
 
 A task is up to three files in `data/`:
