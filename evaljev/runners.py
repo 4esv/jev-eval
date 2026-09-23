@@ -185,7 +185,7 @@ async def openrouter(client: httpx.AsyncClient, task: str, names: list[str], ite
 def laya_agent(spec: str):
     """Load and cache a Laya checkpoint. Spec: laya | laya:multilingual | laya@head=512,len=1024."""
     if spec not in _laya_agents:
-        import laya as laya_pkg  # optional extra: uv sync --extra laya
+        import laya as laya_pkg  # optional extra: uv sync --extra local
 
         base, _, overrides = spec.partition("@")
         _, _, subfolder = base.partition(":")

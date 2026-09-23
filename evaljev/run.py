@@ -90,7 +90,7 @@ async def run(task: str, model: str, effort: str | None, n: int, tag: str, cap: 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--task", default="all", help="a task name from data/, or all")
-    ap.add_argument("--model", required=True, help="'jev' or any OpenRouter model id, e.g. openai/gpt-5.6-terra")
+    ap.add_argument("--model", required=True, help="jev, any OpenRouter model id (e.g. openai/gpt-5.6-terra), laya[:subfolder][@key=value,...], open-jev, or kev")
     ap.add_argument("--reasoning", default=None, help="OpenRouter reasoning effort: low, medium, high")
     ap.add_argument("--n", type=int, default=300)
     ap.add_argument("--tag", default="", help="separate output file, e.g. 'rerun' for determinism")
